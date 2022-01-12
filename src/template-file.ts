@@ -1,82 +1,25 @@
 import { DocumentFragment, Element, Node, parseFragment } from "parse5";
+import { LineMap } from "@mpt/line-map";
 import { getTemplateContent, isElementNode } from "parse5/lib/tree-adapters/default";
-import { basename, dirname, normalize } from "path";
+import { basename, dirname as getDirname, normalize } from "path";
 import { getAttr, isDocumentFragment, isTemplate } from "./common/parse5-tree";
 import { parallel } from "./common/promises";
-import { SourcePositionConverter } from "./common/source-position-converter";
-import { Project } from "./project";
-import { RuleContext } from "./rule";
+import { ProjectContext } from "./project-context";
 import { ViewResourceNames } from "./view-resource-names";
+import { readFile } from "fs/promises";
 
 export class TemplateFile {
-	public readonly project: Project;
-	public readonly filename: string;
-	public readonly dirname: string;
-	public readonly source: string;
-	public readonly sourcePositions: SourcePositionConverter;
+	public readonly viewResourceNames = new ViewResourceNames();
+	public readonly lineMap: LineMap;
 	public readonly tree: DocumentFragment;
 
-	private _viewResourceNames: ViewResourceNames | null = null;
-
-	public constructor(project: Project, filename: string, source: string) {
-		this.project = project;
-		this.filename = normalize(filename);
-		this.dirname = dirname(filename);
-		this.source = source;
-		this.sourcePositions = new SourcePositionConverter(source);
+	private constructor(
+		public readonly filename: string,
+		public readonly dirname: string,
+		public readonly source: string
+	) {
+		this.lineMap = new LineMap(source);
 		this.tree = parseFragment(source, { sourceCodeLocationInfo: true });
-	}
-
-	public async resolveViewResourceNames(ctx: RuleContext): Promise<void> {
-		const names = new ViewResourceNames();
-
-		const tasks: Promise<void>[] = [];
-
-		tasks.push((async () => {
-			let viewModel: string | null = null;
-			try {
-				viewModel = await this.project.resolveSourcePath(`./${basename(this.filename, ".html")}`, this.dirname);
-			} catch {}
-			if (viewModel !== null) {
-				names.add(await this.project.getExportedViewResourceNames(viewModel));
-			}
-		})());
-
-		this.traverseElements(element => {
-			if (element.tagName === "require") {
-				const request = getAttr(element, "from");
-				if (request === undefined) {
-					ctx.emit({
-						message: `<require> element must have a "from" attribute`,
-						position: [element.sourceCodeLocation!.startOffset, element.sourceCodeLocation!.endOffset],
-					});
-				} else {
-					const location = element.sourceCodeLocation!.attrs!.from;
-					tasks.push((async () => {
-						const filename = await this.project.resolveSourcePath(request, this.dirname);
-						if (filename === null) {
-							ctx.emit({
-								message: `path could not be resolved: ${JSON.stringify(request)}`,
-								position: [location.startOffset, location.endOffset],
-							});
-						} else {
-							names.add(await this.project.getExportedViewResourceNames(filename), {
-								startOffset: location.startOffset,
-								endOffset: location.endOffset,
-							});
-						}
-					})());
-				}
-			}
-		});
-
-		await parallel(tasks);
-
-		this._viewResourceNames = names;
-	}
-
-	public get viewResourceNames(): ViewResourceNames | null {
-		return this._viewResourceNames;
 	}
 
 	public traverseElements(visit: (element: Element) => void | boolean): void {
@@ -91,5 +34,46 @@ export class TemplateFile {
 				}
 			}
 		})(this.tree);
+	}
+
+	public static async create(projectContext: ProjectContext, filename: string) {
+		filename = normalize(filename);
+
+		const source = await readFile(filename, "utf-8");
+
+		const dirname = getDirname(filename);
+
+		const template = new TemplateFile(filename, dirname, source);
+
+		const tasks: Promise<void>[] = [];
+		tasks.push((async () => {
+			let viewModel: string | null = null;
+			try {
+				viewModel = await projectContext.resolveSourcePath(`./${basename(filename, ".html")}`, dirname);
+			} catch {}
+			if (viewModel !== null) {
+				template.viewResourceNames.add(await projectContext.getExportedViewResourceNames(viewModel));
+			}
+		})());
+		template.traverseElements(element => {
+			if (element.tagName === "require") {
+				const request = getAttr(element, "from");
+				if (request) {
+					const location = element.sourceCodeLocation!.attrs!.from;
+					tasks.push((async () => {
+						const filename = await projectContext.resolveSourcePath(request, dirname);
+						if (filename !== null) {
+							template.viewResourceNames.add(await projectContext.getExportedViewResourceNames(filename), {
+								startOffset: location.startOffset,
+								endOffset: location.endOffset,
+							});
+						}
+					})());
+				}
+			}
+		});
+		await parallel(tasks);
+
+		return template;
 	}
 }

@@ -1,17 +1,5 @@
 import { TemplateFile } from "./template-file";
 
-export enum RuleStage {
-	/**
-	 * Evaluate as soon as a template syntax tree is available.
-	 */
-	Tree = 0,
-
-	/**
-	 * Evaluate as soon as view resource names are known.
-	 */
-	ViewResources = 1,
-}
-
 export interface RuleDiagnostic {
 	message: string;
 	position?: [start: number, end: number];
@@ -24,8 +12,6 @@ export interface RuleContext {
 }
 
 export interface Rule {
-	readonly stage: RuleStage;
-
 	/**
 	 * Called to configure this rule instance.
 	 */

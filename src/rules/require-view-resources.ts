@@ -1,7 +1,7 @@
 import { Parser, ValueConverter, BindingBehavior } from "aurelia-binding";
 import { Element } from "parse5";
 import { getParentElement } from "../common/parse5-tree";
-import { Rule, RuleContext, RuleStage } from "../rule";
+import { Rule, RuleContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
 
 const bindingSuffixes = new Set<string>([
@@ -37,8 +37,6 @@ export function mergeConfig(config: RequireViewResources.Config, parents: Requir
 }
 
 export default class RequireViewResources implements Rule {
-	public readonly stage = RuleStage.ViewResources;
-
 	private readonly _bindingParser = new Parser();
 
 	private readonly _ignoreElements = new Set(aureliaElements);

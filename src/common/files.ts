@@ -7,14 +7,11 @@ import { readdir } from "fs/promises";
 	system watch can be used when needed.
 */
 import match from "picomatch";
-
-export interface FilePattern {
-	pattern: string;
-	context: string;
-}
+import { watch } from "chokidar";
+import { clearTimeout, setTimeout } from "timers";
 
 interface FileMatcher {
-	context: string;
+	cwd: string;
 	matcher: match.Matcher;
 }
 
@@ -22,16 +19,16 @@ function isOrContains(parent: string, nested: string): boolean {
 	return parent === nested || (nested.startsWith(parent) && nested[parent.length] === sep);
 }
 
-export async function * findFiles(patterns: FilePattern[]) {
+export async function * findFiles(cwd: string, patterns: string[]) {
 	const matchers: FileMatcher[] = [];
 	let regions: string[] = [];
 
 	for (const pattern of patterns) {
 		matchers.push({
-			context: pattern.context,
-			matcher: match(pattern.pattern),
+			cwd,
+			matcher: match(pattern),
 		});
-		const region = join(pattern.context, match.scan(pattern.pattern).base);
+		const region = join(cwd, match.scan(pattern).base);
 		if (!regions.some(r => isOrContains(r, region))) {
 			regions = regions.filter(r => !isOrContains(region, r));
 			regions.push(region);
@@ -46,7 +43,7 @@ export async function * findFiles(patterns: FilePattern[]) {
 				}
 			});
 			if (names === undefined) {
-				if (matchers.some(({ matcher, context }) => matcher(relative(context, filename)))) {
+				if (matchers.some(({ matcher, cwd: context }) => matcher(relative(context, filename)))) {
 					yield filename;
 				}
 			} else {
@@ -56,4 +53,94 @@ export async function * findFiles(patterns: FilePattern[]) {
 			}
 		})(region);
 	}
+}
+
+const WATCH_FILES_DELAY = 100;
+
+export function watchFiles(options: WatchOptions): DisposeWatcher {
+	const watcher = watch(options.patterns, { cwd: options.cwd });
+
+	let ready = false;
+	let handling = false;
+
+	const updated = new Set<string>();
+	const deleted = new Set<string>();
+
+	let handleChangesTimer: NodeJS.Timer | null = null;
+	function handleChanges() {
+		if (!ready) {
+			return;
+		}
+		if (handleChangesTimer !== null) {
+			clearTimeout(handleChangesTimer);
+		}
+		handleChangesTimer = setTimeout(() => {
+			if (!handling) {
+				handling = true;
+				void (async () => {
+					while (updated.size > 0 || deleted.size > 0) {
+						try {
+							const changes: FileChanges = {
+								updated: Array.from(updated),
+								deleted: Array.from(deleted),
+							};
+							updated.clear();
+							deleted.clear();
+							await options.onChange(changes);
+						} catch (error) {
+							options.onError(error);
+						}
+					}
+					handling = false;
+				})();
+			}
+		}, WATCH_FILES_DELAY);
+	}
+
+	watcher.on("add", name => {
+		const filename = join(options.cwd, name);
+		updated.add(filename);
+		deleted.delete(filename);
+		handleChanges();
+	});
+
+	watcher.on("change", name => {
+		const filename = join(options.cwd, name);
+		updated.add(filename);
+		deleted.delete(filename);
+		handleChanges();
+	});
+
+	watcher.on("unlink", name => {
+		const filename = join(options.cwd, name);
+		updated.delete(filename);
+		deleted.add(filename);
+		handleChanges();
+	});
+
+	watcher.on("ready", () => {
+		ready = true;
+		handleChanges();
+	});
+
+	return async () => {
+		await watcher.close();
+		if (handleChangesTimer !== null) {
+			clearTimeout(handleChangesTimer);
+		}
+	};
+}
+
+export interface WatchOptions {
+	cwd: string;
+	patterns: string[];
+	onChange(changes: FileChanges): void | Promise<void>;
+	onError(error: unknown): void;
+}
+
+export type DisposeWatcher = () => Promise<void>;
+
+export interface FileChanges {
+	readonly updated: string[];
+	readonly deleted: string[];
 }

@@ -1,5 +1,5 @@
 import { isDocumentFragment } from "../common/parse5-tree";
-import { Rule, RuleContext, RuleStage } from "../rule";
+import { Rule, RuleContext } from "../rule";
 
 const controlAttributes = new Set<string>([
 	"id",
@@ -11,8 +11,6 @@ const controlAttributes = new Set<string>([
 ]);
 
 export default class NoDeadTemplates implements Rule {
-	public readonly stage = RuleStage.Tree;
-
 	public evaluate(ctx: RuleContext) {
 		ctx.file.traverseElements(elem => {
 			if (elem.tagName === "template" && !isDocumentFragment(elem.parentNode) && !elem.attrs.some(attr => {

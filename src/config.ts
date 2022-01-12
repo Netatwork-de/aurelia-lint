@@ -1,12 +1,13 @@
 import { readFile } from "fs/promises";
 import { dirname, resolve } from "path";
-import { FilePattern } from "./common/files";
+import { parse } from "json5";
 import { getRuleModule } from "./rule";
 import { mergeSeverity, Severity } from "./severity";
 
 export interface Config {
-	readonly srcRoot?: string;
-	readonly include: FilePattern[];
+	readonly context: string;
+	readonly srcRoot: string;
+	readonly include: string[];
 	readonly rules: Map<string, Config.RuleConfig>;
 }
 
@@ -27,16 +28,11 @@ export namespace Config {
 
 	export async function load(filename: string): Promise<Config> {
 		const context = dirname(filename);
-		const json = JSON.parse(await readFile(filename, "utf-8")) as Json;
+		const json = parse(await readFile(filename, "utf-8")) as Json;
 
-		const include: FilePattern[] = [];
+		const include = json.include ?? ["./src/**/*.html"];
+
 		const rules = new Map<string, RuleConfig>();
-
-		if (json.include) {
-			for (const pattern of json.include) {
-				include.push({ pattern, context });
-			}
-		}
 
 		if (json.rules) {
 			for (const name in json.rules) {
@@ -66,7 +62,6 @@ export namespace Config {
 			const parentRuleMap = new Map<string, RuleConfig[]>();
 			for (const path of json.extends) {
 				const config = await load(resolve(context, path));
-				include.push(...config.include);
 				config.rules.forEach((rule, name) => {
 					const parentRules = parentRuleMap.get(name);
 					if (parentRules === undefined) {
@@ -88,6 +83,7 @@ export namespace Config {
 		}
 
 		return {
+			context,
 			srcRoot: resolve(context, json.srcRoot ?? "./src"),
 			include,
 			rules,
