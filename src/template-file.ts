@@ -6,7 +6,6 @@ import { getAttr, isDocumentFragment, isTemplate } from "./common/parse5-tree";
 import { parallel } from "./common/promises";
 import { ProjectContext } from "./project-context";
 import { ViewResourceNames } from "./view-resource-names";
-import { readFile } from "fs/promises";
 
 export class TemplateFile {
 	public readonly viewResourceNames = new ViewResourceNames();
@@ -16,7 +15,7 @@ export class TemplateFile {
 	private constructor(
 		public readonly filename: string,
 		public readonly dirname: string,
-		public readonly source: string
+		public readonly source: string,
 	) {
 		this.lineMap = new LineMap(source);
 		this.tree = parseFragment(source, { sourceCodeLocationInfo: true });
@@ -36,11 +35,8 @@ export class TemplateFile {
 		})(this.tree);
 	}
 
-	public static async create(projectContext: ProjectContext, filename: string) {
+	public static async create(projectContext: ProjectContext, filename: string, source: string) {
 		filename = normalize(filename);
-
-		const source = await readFile(filename, "utf-8");
-
 		const dirname = getDirname(filename);
 
 		const template = new TemplateFile(filename, dirname, source);

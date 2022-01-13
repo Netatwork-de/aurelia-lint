@@ -1,4 +1,5 @@
-import { DisposeWatcher, findFiles, watchFiles } from "./common/files";
+import { readFile } from "fs/promises";
+import { createFileMatcher, DisposeWatcher, FileMatcherFn, findFiles, watchFiles } from "./common/files";
 import { Config } from "./config";
 import { ProjectContext } from "./project-context";
 import { getRuleModule, Rule, RuleDiagnostic } from "./rule";
@@ -14,14 +15,29 @@ export class Project {
 	private readonly _config: Config;
 	private readonly _context: ProjectContext;
 	private readonly _rules: RuleInstance[];
+	private readonly _fileMatcher: FileMatcherFn;
 
 	private constructor(config: Config, context: ProjectContext, rules: RuleInstance[]) {
 		this._config = config;
 		this._context = context;
 		this._rules = rules;
+		this._fileMatcher = createFileMatcher(config.context, config.include);
 	}
 
-	public evaluateFile(file: TemplateFile): Project.Diagnostic[] {
+	public includes(filename: string) {
+		return this._fileMatcher(filename);
+	}
+
+	public async evaluate(filename: string, source?: string): Promise<[TemplateFile, Project.Diagnostic[]]> {
+		const file = await this.createFile(filename, source);
+		return [file, this.evaluateFile(file)];
+	}
+
+	private async createFile(filename: string, source?: string) {
+		return TemplateFile.create(this._context, filename, source ?? await readFile(filename, "utf-8"));
+	}
+
+	private evaluateFile(file: TemplateFile): Project.Diagnostic[] {
 		const diagnostics: Project.Diagnostic[] = [];
 		this._rules.forEach(({ rule, severity }) => {
 			rule.evaluate({
@@ -37,7 +53,7 @@ export class Project {
 	public async run(): Promise<Project.Diagnostics> {
 		const diagnostics = new Map<TemplateFile, Project.Diagnostic[]>();
 		for await (const filename of findFiles(this._config.context, this._config.include)) {
-			const file = await TemplateFile.create(this._context, filename);
+			const file = await this.createFile(filename);
 			diagnostics.set(file, this.evaluateFile(file));
 		}
 		return diagnostics;
@@ -51,7 +67,7 @@ export class Project {
 				changes.deleted.forEach(filename => this._context.invalidateCache(filename));
 				const diagnostics = new Map<TemplateFile, Project.Diagnostic[]>();
 				for (const filename of changes.updated) {
-					const file = await TemplateFile.create(this._context, filename);
+					const file = await this.createFile(filename);
 					diagnostics.set(file, this.evaluateFile(file));
 				}
 				options.onDiagnostics(diagnostics);

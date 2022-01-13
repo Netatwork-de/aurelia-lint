@@ -19,6 +19,16 @@ function isOrContains(parent: string, nested: string): boolean {
 	return parent === nested || (nested.startsWith(parent) && nested[parent.length] === sep);
 }
 
+export function createFileMatcher(cwd: string, patterns: string[]): FileMatcherFn {
+	const matchers = patterns.map(pattern => match(pattern));
+	return filename => {
+		const rel = relative(cwd, filename);
+		return matchers.some(matcher => matcher(rel));
+	};
+}
+
+export type FileMatcherFn = (filename: string) => boolean;
+
 export async function * findFiles(cwd: string, patterns: string[]) {
 	const matchers: FileMatcher[] = [];
 	let regions: string[] = [];
