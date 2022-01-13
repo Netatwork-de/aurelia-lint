@@ -8,6 +8,7 @@ import { Config } from "../config";
 import { Project } from "../project";
 import { Severity } from "../severity";
 import { TemplateFile } from "../template-file";
+import { Settings } from "./settings";
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
@@ -20,6 +21,7 @@ const configFilenames = [
 ];
 
 let initialWorkspaces: WorkspaceFolder[];
+let settings: Settings;
 
 connection.onInitialize(params => {
 	if (!params.workspaceFolders || !params.capabilities.workspace?.workspaceFolders) {
@@ -41,6 +43,9 @@ connection.onInitialize(params => {
 });
 
 connection.onInitialized(async () => {
+	settings = await connection.workspace.getConfiguration("nawAureliaLint");
+	console.log("Using settings", settings);
+
 	for (const workspace of initialWorkspaces) {
 		await addWorkspace(workspace);
 	}
@@ -72,6 +77,15 @@ connection.onDidChangeWatchedFiles(({ changes }) => {
 documents.onDidOpen(({ document }) => updateDocument(document));
 documents.onDidChangeContent(({ document }) => updateDocument(document));
 
+documents.onDidClose(({ document }) => {
+	if (settings.onlyCurrentFiles) {
+		connection.sendDiagnostics({
+			uri: document.uri,
+			diagnostics: [],
+		});
+	}
+});
+
 async function updateDocument(document: TextDocument) {
 	try {
 		const filename = fileURLToPath(document.uri);
@@ -97,7 +111,7 @@ async function addWorkspace(workspace: WorkspaceFolder) {
 function removeWorkspace(workspace: WorkspaceFolder) {
 	// TODO: Unload projects where this was the only remaining workspace.
 }
-//
+
 function loadProject(configFilename: string) {
 	if (!/[\\/]node_modules[\\/]/.test(configFilename)) {
 		queueTask(async () => {
@@ -109,8 +123,10 @@ function loadProject(configFilename: string) {
 
 				projects.set(configFilename, project);
 
-				for (const [file, fileDiagnostics] of await project.run()) {
-					emitDiagnostics(file, fileDiagnostics);
+				if (!settings.onlyCurrentFiles) {
+					for (const [file, fileDiagnostics] of await project.run()) {
+						emitDiagnostics(file, fileDiagnostics);
+					}
 				}
 			}
 		});
