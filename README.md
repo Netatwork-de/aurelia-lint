@@ -120,3 +120,12 @@ rules: {
 	},
 },
 ```
+
+<br>
+
+
+
+# Changelog
+
+## 1.1
++ Add support for disable comments.
