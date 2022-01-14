@@ -59,27 +59,10 @@ connection.onInitialized(async () => {
 	}
 
 	connection.workspace.onDidChangeWorkspaceFolders(async ({ removed, added }) => {
-		for (const workspace of removed) {
-			removeWorkspace(workspace);
-		}
 		for (const workspace of added) {
 			await addWorkspace(workspace);
 		}
 	});
-});
-
-connection.onDidChangeWatchedFiles(({ changes }) => {
-	for (const { type, uri } of changes) {
-		const filename = fileURLToPath(uri);
-		if (configFilenames.includes(basename(filename))) {
-			if (type === FileChangeType.Deleted || type === FileChangeType.Changed) {
-				unloadProject(filename);
-			}
-			if (type === FileChangeType.Created || type === FileChangeType.Changed) {
-				loadProject(filename);
-			}
-		}
-	}
 });
 
 documents.onDidOpen(({ document }) => updateDocument(document));
@@ -118,10 +101,6 @@ async function addWorkspace(workspace: WorkspaceFolder) {
 	console.log("Done.");
 }
 
-function removeWorkspace(workspace: WorkspaceFolder) {
-	// TODO: Unload projects where this was the only remaining workspace.
-}
-
 function loadProject(configFilename: string) {
 	if (!/[\\/]node_modules[\\/]/.test(configFilename)) {
 		queueTask(async () => {
@@ -141,13 +120,6 @@ function loadProject(configFilename: string) {
 			}
 		});
 	}
-}
-
-function unloadProject(configFilename: string) {
-	queueTask(() => {
-		console.log("Unloading project:", configFilename);
-		projects.delete(configFilename);
-	});
 }
 
 function emitDiagnostics(file: TemplateFile, diagnostics: Project.Diagnostic[]) {
