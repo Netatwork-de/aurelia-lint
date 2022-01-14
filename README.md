@@ -39,6 +39,35 @@ npx naw-aurelia-lint ...
 + `--watch` - Lint and watch for changes.
 + `--no-color` - Disable colored output.
 
+## Disabling Rules
+Rules can be temporarily disabled via html comments:
+
+Disable for the next line:
+```html
+<!-- aurelia-lint-disable-line example-rule -->
+```
+
+Disable for a range of lines:
+```html
+<!-- aurelia-lint-disable example-rule -->
+...
+<!-- aurelia-lint-enable example-rule -->
+```
+Or for the entire file:
+```html
+<!-- aurelia-lint-disable example-rule -->
+...
+...
+```
+
+Optionally, disable comments can have multiple lines with an explanation why the rule is disabled:
+```html
+<!--
+	aurelia-line-disable example-rule
+	Example rule is disabled because...
+-->
+```
+
 <br>
 
 

@@ -44,11 +44,13 @@ export class Project {
 			rule.evaluate({
 				file,
 				emit(diagnostic) {
-					diagnostics.push({
-						rule: name,
-						severity,
-						...diagnostic,
-					});
+					if (!file.disabledRules.has(name, diagnostic.position?.[0] ?? 0)) {
+						diagnostics.push({
+							rule: name,
+							severity,
+							...diagnostic,
+						});
+					}
 				}
 			});
 		});
