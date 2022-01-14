@@ -7,7 +7,6 @@ const controlAttributes = new Set<string>([
 	"else",
 	"repeat",
 	"replace-part",
-	"else",
 ]);
 
 export default class NoDeadTemplates implements Rule {
