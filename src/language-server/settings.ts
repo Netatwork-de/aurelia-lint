@@ -1,4 +1,5 @@
 
 export interface Settings {
-	onlyCurrentFiles: boolean;
+	onlyCurrentFiles?: boolean;
+	ignorePaths?: string;
 }

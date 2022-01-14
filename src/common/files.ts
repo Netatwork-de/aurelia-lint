@@ -1,4 +1,4 @@
-import { join, relative, sep } from "path";
+import { basename, join, relative, sep } from "path";
 import { readdir } from "fs/promises";
 
 /*
@@ -29,9 +29,11 @@ export function createFileMatcher(cwd: string, patterns: string[]): FileMatcherF
 
 export type FileMatcherFn = (filename: string) => boolean;
 
-export async function * findFiles(cwd: string, patterns: string[]) {
+export async function * findFiles(cwd: string, patterns: string[], ignorePatterns: string[] = []) {
 	const matchers: FileMatcher[] = [];
 	let regions: string[] = [];
+
+	const ignoreMatchers: match.Matcher[] = ignorePatterns.map(p => match(p));
 
 	for (const pattern of patterns) {
 		matchers.push({
@@ -47,8 +49,13 @@ export async function * findFiles(cwd: string, patterns: string[]) {
 
 	for (const region of regions) {
 		yield * (async function * traverse(filename: string): AsyncGenerator<string> {
-			const names = await readdir(filename).catch(error => {
-				if (error?.code !== "ENOTDIR") {
+			const ignoreRel = relative(cwd, filename);
+			if (ignoreMatchers.some(matcher => matcher(ignoreRel))) {
+				return;
+			}
+
+			const names = await readdir(filename).catch((error: NodeJS.ErrnoException) => {
+				if (error?.code !== "ENOTDIR" && error?.code !== "EBUSY") {
 					throw error;
 				}
 			});

@@ -21,7 +21,8 @@ const configFilenames = [
 ];
 
 let initialWorkspaces: WorkspaceFolder[];
-let settings: Settings;
+let onlyCurrentFiles: boolean;
+let ignorePaths: string[];
 
 connection.onInitialize(params => {
 	if (!params.workspaceFolders || !params.capabilities.workspace?.workspaceFolders) {
@@ -43,8 +44,15 @@ connection.onInitialize(params => {
 });
 
 connection.onInitialized(async () => {
-	settings = await connection.workspace.getConfiguration("nawAureliaLint");
-	console.log("Using settings", settings);
+	const settings: Settings = (await connection.workspace.getConfiguration("nawAureliaLint")) ?? {};
+
+	onlyCurrentFiles = settings.onlyCurrentFiles ?? false;
+	ignorePaths = settings.ignorePaths?.split("|").map(s => s.trim()) ?? ["**/node_modules"];
+
+	console.log("Using settings", {
+		onlyCurrentFiles,
+		ignorePaths,
+	});
 
 	for (const workspace of initialWorkspaces) {
 		await addWorkspace(workspace);
@@ -78,7 +86,7 @@ documents.onDidOpen(({ document }) => updateDocument(document));
 documents.onDidChangeContent(({ document }) => updateDocument(document));
 
 documents.onDidClose(({ document }) => {
-	if (settings.onlyCurrentFiles) {
+	if (onlyCurrentFiles) {
 		connection.sendDiagnostics({
 			uri: document.uri,
 			diagnostics: [],
@@ -103,9 +111,11 @@ async function updateDocument(document: TextDocument) {
 
 async function addWorkspace(workspace: WorkspaceFolder) {
 	const root = fileURLToPath(workspace.uri);
-	for await (const configFile of findFiles(root, configFilenames.map(n => `**/${n}`))) {
+	console.log("Looking for projects in", root);
+	for await (const configFile of findFiles(root, configFilenames.map(n => `**/${n}`), ignorePaths)) {
 		loadProject(configFile);
 	}
+	console.log("Done.");
 }
 
 function removeWorkspace(workspace: WorkspaceFolder) {
@@ -123,7 +133,7 @@ function loadProject(configFilename: string) {
 
 				projects.set(configFilename, project);
 
-				if (!settings.onlyCurrentFiles) {
+				if (!onlyCurrentFiles) {
 					for (const [file, fileDiagnostics] of await project.run()) {
 						emitDiagnostics(file, fileDiagnostics);
 					}
