@@ -5,7 +5,10 @@
 		"naw-aurelia-lint": "./dist/cli.js"
 	},
 	"scripts": {
-		"start": "tsc -w"
+		"clean": "rimraf ./dist/**/*",
+		"start": "tsc -w",
+		"build": "tsc",
+		"prepack": "npm run build"
 	},
 	"devDependencies": {
 		"@types/decamelize": "^3.0.3",
