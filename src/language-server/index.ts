@@ -136,6 +136,8 @@ function emitDiagnostics(file: TemplateFile, diagnostics: Project.Diagnostic[]) 
 		diagnostics: diagnostics.map<Diagnostic>(diagnostic => {
 			return {
 				message: diagnostic.message,
+				source: `aurelia-lint`,
+				code: diagnostic.rule,
 				severity: toLspSeverity(diagnostic.severity),
 				range: diagnostic.position
 					? {

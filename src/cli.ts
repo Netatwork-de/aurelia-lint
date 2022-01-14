@@ -57,14 +57,16 @@ interface Args extends parseArgv.Arguments {
 
 		for (const [file, fileDiagnostics] of diagnostics) {
 			fileCount++;
-			for (const { severity, message, position } of fileDiagnostics) {
+			for (const { rule, severity, message, position } of fileDiagnostics) {
 				counts[severity]++;
 
 				console.log(`  ${
 					formatSeverity(severity)
 				}${
 					position ? ` (${formatPosition(file.lineMap.getPosition(position[0])!)})` : ""
-				}: ${message}`);
+				}: ${message} ${
+					colors.gray(`(${rule})`)
+				}`);
 
 				if (position) {
 					console.log(colors.gray(ellipsis(`    ${file.source.slice(position[0], position[1])}`)));

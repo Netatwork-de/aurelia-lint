@@ -7,6 +7,7 @@ import { Severity } from "./severity";
 import { TemplateFile } from "./template-file";
 
 interface RuleInstance {
+	name: string;
 	rule: Rule;
 	severity: Severity;
 }
@@ -39,11 +40,15 @@ export class Project {
 
 	private evaluateFile(file: TemplateFile): Project.Diagnostic[] {
 		const diagnostics: Project.Diagnostic[] = [];
-		this._rules.forEach(({ rule, severity }) => {
+		this._rules.forEach(({ name, rule, severity }) => {
 			rule.evaluate({
 				file,
 				emit(diagnostic) {
-					diagnostics.push({ severity, ...diagnostic });
+					diagnostics.push({
+						rule: name,
+						severity,
+						...diagnostic,
+					});
 				}
 			});
 		});
@@ -87,6 +92,7 @@ export class Project {
 			const rule = new ruleModule.default();
 			rule.configure?.(ruleConfig.config);
 			rules.push({
+				name,
 				rule,
 				severity: ruleConfig.severity ?? "error",
 			});
@@ -98,6 +104,7 @@ export class Project {
 
 export declare namespace Project {
 	export interface Diagnostic extends RuleDiagnostic {
+		rule: string;
 		severity: Severity;
 	}
 
