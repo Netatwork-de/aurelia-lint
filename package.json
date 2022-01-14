@@ -1,5 +1,6 @@
 {
 	"name": "@netatwork/aurelia-lint",
+	"version": "1.0.0",
 	"bin": {
 		"naw-aurelia-lint": "./dist/cli.js"
 	},
