@@ -1,16 +1,9 @@
-import { Parser, ValueConverter, BindingBehavior } from "aurelia-binding";
+import { ValueConverter, BindingBehavior, Expression } from "aurelia-binding";
 import { Element } from "parse5";
 import { getParentElement } from "../common/parse5-tree";
+import { bindingParser } from "../common/binding";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
-
-const bindingSuffixes = new Set<string>([
-	"bind",
-	"one-time",
-	"two-way",
-	"from-view",
-	"to-view",
-]);
 
 const aureliaElements = new Set<string>([
 	"template",
@@ -37,8 +30,6 @@ export function mergeConfig({ config, parents }: RuleMergeConfigContext<RequireV
 }
 
 export class RequireViewResources implements Rule {
-	private readonly _bindingParser = new Parser();
-
 	private readonly _ignoreElements = new Set(aureliaElements);
 	private readonly _ignoreElementEndings = new Set();
 
@@ -75,15 +66,16 @@ export class RequireViewResources implements Rule {
 			}
 		}
 
-		function evaluateExpression(this: RequireViewResources, value: string, startOffset: number, endOffset: number) {
-			let expression = this._bindingParser.parse(value);
+		ctx.file.traverseBindings(binding => {
+			let expression: Expression | undefined = undefined;
+			try { expression = bindingParser.parse(binding.expression); } catch {}
 			while (expression instanceof BindingBehavior) {
 				if (names.bindingBehaviors.has(expression.name)) {
 					useRequireInfo(names.bindingBehaviors.get(expression.name));
 				} else if (!this._ignoreBindingBehaviors.has(expression.name)) {
 					ctx.emit({
 						message: `Missing require for binding behavior: ${JSON.stringify(expression.name)}`,
-						position: [startOffset, endOffset],
+						position: [binding.start, binding.end],
 					});
 				}
 				expression = expression.expression;
@@ -94,25 +86,14 @@ export class RequireViewResources implements Rule {
 				} else if (!this._ignoreValueConverters.has(expression.name)) {
 					ctx.emit({
 						message: `Missing require for value converter: ${JSON.stringify(expression.name)}`,
-						position: [startOffset, endOffset],
+						position: [binding.start, binding.end],
 					});
 				}
 				expression = expression.expression;
 			}
-		}
+		});
 
 		ctx.file.traverseElements(elem => {
-			// TODO: Check for value converters in interpolation in attribute values.
-			// TODO: Check for value converters in interpolation in node text.
-
-			elem.attrs.forEach(attr => {
-				const parts = attr.name.split(".");
-				if (parts.length > 1 && bindingSuffixes.has(parts[parts.length - 1])) {
-					const location = elem.sourceCodeLocation!.attrs![attr.name];
-					evaluateExpression.call(this, attr.value, location.startOffset, location.endOffset);
-				}
-			});
-
 			const tagName = elem.tagName;
 			if (this._ignoreElements.has(tagName)) {
 				return;

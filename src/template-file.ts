@@ -1,12 +1,13 @@
-import { CommentNode, DocumentFragment, Element, Node, parseFragment } from "parse5";
+import { CommentNode, DocumentFragment, Element, Node, parseFragment, TextNode } from "parse5";
 import { LineMap } from "@mpt/line-map";
-import { getTemplateContent, isCommentNode, isElementNode } from "parse5/lib/tree-adapters/default";
+import { getTemplateContent, isCommentNode, isElementNode, isTextNode } from "parse5/lib/tree-adapters/default";
 import { basename, dirname as getDirname, normalize } from "path";
-import { getAttr, isDocumentFragment, isTemplate } from "./common/parse5-tree";
+import { getAttr, getAttrValueOffset, isDocumentFragment, isTemplate } from "./common/parse5-tree";
 import { parallel } from "./common/promises";
 import { ProjectContext } from "./project-context";
 import { ViewResourceNames } from "./view-resource-names";
 import { Ranges } from "./ranges";
+import { bindingSuffixes, parseInterpolation } from "./common/binding";
 
 export class TemplateFile {
 	public readonly viewResourceNames = new ViewResourceNames();
@@ -40,7 +41,7 @@ export class TemplateFile {
 		})(this.tree);
 	}
 
-	public traverseElements(visit: (element: Element) => void | boolean): void {
+	public traverseElements(visit: (element: Element) => void | boolean, visitText?: (text: TextNode) => void): void {
 		(function traverse(node: Node) {
 			if (isDocumentFragment(node)) {
 				node.childNodes.forEach(traverse);
@@ -50,8 +51,58 @@ export class TemplateFile {
 				} else {
 					(node as Element).childNodes.forEach(traverse);
 				}
+			} else if (visitText && isTextNode(node)) {
+				visitText(node);
 			}
 		})(this.tree);
+	}
+
+	public traverseBindings(visit: (binding: TemplateFile.Binding) => void): void {
+		this.traverseElements(elem => {
+			elem.attrs.forEach(attr => {
+				const parts = attr.name.split(".");
+				const location = elem.sourceCodeLocation!.attrs![attr.name];
+				const valueOffset = getAttrValueOffset(attr, location);
+				if (parts.length > 1 && bindingSuffixes.has(parts[parts.length - 1])) {
+					visit({
+						type: "attributeBinding",
+						attrName: attr.name,
+						expression: attr.value,
+						start: valueOffset,
+						end: valueOffset + attr.value.length,
+						elem,
+					});
+				} else {
+					const bindings = parseInterpolation(attr.value);
+					for (let i = 0; i < bindings.length; i++) {
+						const binding = bindings[i];
+						const bindingValueOffset = valueOffset + binding.offset;
+						visit({
+							type: "attributeInterpolation",
+							attrName: attr.name,
+							expression: binding.value,
+							start: bindingValueOffset,
+							end: bindingValueOffset + binding.value.length,
+							elem,
+						});
+					}
+				}
+			});
+		}, textNode => {
+			const location = textNode.sourceCodeLocation!;
+			const bindings = parseInterpolation(textNode.value);
+			for (let i = 0; i < bindings.length; i++) {
+				const binding = bindings[i];
+				const bindingValueOffset = location.startOffset + binding.offset;
+				visit({
+					type: "interpolation",
+					expression: binding.value,
+					start: bindingValueOffset,
+					end: bindingValueOffset + binding.value.length,
+					textNode,
+				});
+			}
+		});
 	}
 
 	public static async create(projectContext: ProjectContext, filename: string, source: string) {
@@ -130,4 +181,25 @@ export class TemplateFile {
 
 		return template;
 	}
+}
+
+export declare namespace TemplateFile {
+	export interface AttributeBinding extends BindingBase {
+		type: "attributeBinding" | "attributeInterpolation";
+		attrName: string;
+		elem: Element;
+	}
+
+	export interface InterpolationBinding extends BindingBase {
+		type: "interpolation";
+		textNode: TextNode;
+	}
+
+	export interface BindingBase {
+		expression: string;
+		start: number;
+		end: number;
+	}
+
+	export type Binding = AttributeBinding | InterpolationBinding;
 }
