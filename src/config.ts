@@ -74,10 +74,12 @@ export namespace Config {
 
 			for (const [name, parentRules] of parentRuleMap) {
 				const ruleModule = await getRuleModule(name);
-				const config = rules.get(name);
+				const ruleConfig = rules.get(name);
 				rules.set(name, {
-					severity: mergeSeverity(config?.severity, parentRules.map(rule => rule.severity)),
-					config: ruleModule.mergeConfig ? ruleModule.mergeConfig(config?.config ?? {}, parentRules.map(rule => rule.config)) : {},
+					severity: mergeSeverity(ruleConfig?.severity, parentRules.map(rule => rule.severity)),
+					config: ruleModule.mergeConfig
+						? ruleModule.mergeConfig(ruleConfig?.config ?? {}, parentRules.map(rule => rule.config))
+						: (ruleConfig?.config ?? {}),
 				});
 			}
 		}
