@@ -63,7 +63,7 @@ Or for the entire file:
 Optionally, disable comments can have multiple lines with an explanation why the rule is disabled:
 ```html
 <!--
-	aurelia-line-disable example-rule
+	aurelia-lint-disable example-rule
 	Example rule is disabled because...
 -->
 ```
