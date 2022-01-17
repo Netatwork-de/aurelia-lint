@@ -3,8 +3,10 @@ import { TemplateFile } from "./template-file";
 
 export interface RuleDiagnostic {
 	message: string;
-	position?: [start: number, end: number];
+	position?: RuleDiagnosticPosition;
 }
+
+export type RuleDiagnosticPosition = [start: number, end: number];
 
 export interface RuleContext {
 	readonly file: TemplateFile;

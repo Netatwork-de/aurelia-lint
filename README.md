@@ -74,6 +74,16 @@ Optionally, disable comments can have multiple lines with an explanation why the
 
 # Builtin Rules
 
+## `editorconfig-format`
+Ensure that all template files are correctly formatted according to the respective `.editorconfig` file. This rule validates indentation, line endings and trailing whitespace.
+
+```js
+rules: {
+	// This rule has no configuration options.
+	"editorconfig-format": "error",
+},
+```
+
 ## `no-dead-templates`
 Require `<template>` elements to have at least one of the following attributes: `"id", "if", "else", "repeat", "replace-part"`
 
@@ -126,6 +136,9 @@ rules: {
 
 
 # Changelog
+
+## 1.2
++ Add `editorconfig-format` rule.
 
 ## 1.1
 + Add support for disable comments.
