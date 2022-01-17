@@ -74,7 +74,10 @@ interface Args extends parseArgv.Arguments {
 				}`);
 
 				if (position) {
-					console.log(colors.gray(ellipsis(`    ${file.source.slice(position[0], position[1])}`)));
+					const sourceText = file.source.slice(position[0], position[1]);
+					if (/\S/.test(sourceText)) {
+						console.log(colors.gray(ellipsis(`    ${sourceText}`)));
+					}
 				}
 				console.log();
 			}
