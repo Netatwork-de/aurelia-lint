@@ -36,7 +36,7 @@ export function mergeConfig(config: RequireViewResources.Config, parents: Requir
 	};
 }
 
-export default class RequireViewResources implements Rule {
+export class RequireViewResources implements Rule {
 	private readonly _bindingParser = new Parser();
 
 	private readonly _ignoreElements = new Set(aureliaElements);
@@ -148,6 +148,8 @@ export default class RequireViewResources implements Rule {
 		});
 	}
 }
+
+export default RequireViewResources;
 
 export declare namespace RequireViewResources {
 	export interface Config {

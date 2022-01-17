@@ -9,7 +9,7 @@ const controlAttributes = new Set<string>([
 	"replace-part",
 ]);
 
-export default class NoDeadTemplates implements Rule {
+export class NoDeadTemplates implements Rule {
 	public evaluate(ctx: RuleContext) {
 		ctx.file.traverseElements(elem => {
 			if (elem.tagName === "template" && !isDocumentFragment(elem.parentNode) && !elem.attrs.some(attr => {
@@ -25,3 +25,5 @@ export default class NoDeadTemplates implements Rule {
 		});
 	}
 }
+
+export default NoDeadTemplates;
