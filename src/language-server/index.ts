@@ -1,8 +1,7 @@
 import createLimit from "p-limit";
-import { basename } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { createConnection, ProposedFeatures, TextDocuments, TextDocumentSyncKind, WorkspaceFolder, DiagnosticSeverity, Diagnostic, FileChangeType } from "vscode-languageserver/node";
+import { createConnection, ProposedFeatures, TextDocuments, TextDocumentSyncKind, WorkspaceFolder, DiagnosticSeverity, Diagnostic } from "vscode-languageserver/node";
 import { findFiles } from "../common/files";
 import { Config } from "../config";
 import { Project } from "../project";
