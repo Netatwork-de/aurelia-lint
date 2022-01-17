@@ -1,3 +1,4 @@
+import { Config } from "./config";
 import { TemplateFile } from "./template-file";
 
 export interface RuleDiagnostic {
@@ -15,7 +16,7 @@ export interface Rule {
 	/**
 	 * Called to configure this rule instance.
 	 */
-	configure?(config: object): void;
+	configure?(config: object, projectConfig: Config): void | Promise<void>;
 
 	/**
 	 * Called to evaluate this rule on a given template file.

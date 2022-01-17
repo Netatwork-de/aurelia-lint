@@ -92,7 +92,7 @@ export class Project {
 		for (const [name, ruleConfig] of config.rules) {
 			const ruleModule = await getRuleModule(name);
 			const rule = new ruleModule.default();
-			rule.configure?.(ruleConfig.config);
+			await rule.configure?.(ruleConfig.config, config);
 			rules.push({
 				name,
 				rule,
