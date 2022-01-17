@@ -77,22 +77,11 @@ Optionally, disable comments can have multiple lines with an explanation why the
 ## `editorconfig-format`
 Ensure that all template files are correctly formatted according to the respective `.editorconfig` file. This rule validates indentation, line endings and trailing whitespace.
 
-```js
-rules: {
-	// This rule has no configuration options.
-	"editorconfig-format": "error",
-},
-```
-
 ## `no-dead-templates`
 Require `<template>` elements to have at least one of the following attributes: `"id", "if", "else", "repeat", "replace-part"`
 
-```js
-rules: {
-	// This rule has no configuration options.
-	"no-dead-templates": "error",
-},
-```
+## `no-invalid-bindings`
+Ensure that there are no bindings with syntax that can not be parsed by aurelia.
 
 ## `require-view-resources`
 Ensure that all elements, binding behaviors and value converters are either global or have an associated `<require from="...">` element.
@@ -139,6 +128,7 @@ rules: {
 
 ## 1.2
 + Add `editorconfig-format` rule.
++ Add `no-invalid-bindings` rule.
 
 ## 1.1
 + Add support for disable comments.
