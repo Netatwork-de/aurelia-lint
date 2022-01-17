@@ -33,9 +33,20 @@ export interface RuleModule {
 	default: RuleConstructor;
 
 	/**
-	 * Called to merge a config with one or more parent configs.
+	 * Called to merge and normalize a config with one or more parent configs.
 	 */
-	mergeConfig?(config: object, parents: object[]): object;
+	mergeConfig?(context: RuleMergeConfigContext): object;
+}
+
+export interface RuleMergeConfigContext<T = object> {
+	/** The current rule config to normalize. */
+	config: T;
+	/** An array of normalized parent rule configs to extend from. */
+	parents: T[];
+	/** The context directory of the current config. */
+	context: string;
+	/** True if this is the root config (not a config that is extended). */
+	isRoot: boolean;
 }
 
 const cache = new Map<string, Promise<RuleModule>>();

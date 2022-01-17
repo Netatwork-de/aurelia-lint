@@ -1,7 +1,7 @@
 import { Parser, ValueConverter, BindingBehavior } from "aurelia-binding";
 import { Element } from "parse5";
 import { getParentElement } from "../common/parse5-tree";
-import { Rule, RuleContext } from "../rule";
+import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
 
 const bindingSuffixes = new Set<string>([
@@ -20,7 +20,7 @@ const aureliaElements = new Set<string>([
 	"compose",
 ]);
 
-export function mergeConfig(config: RequireViewResources.Config, parents: RequireViewResources.Config[]): RequireViewResources.Config {
+export function mergeConfig({ config, parents }: RuleMergeConfigContext<RequireViewResources.Config>): RequireViewResources.Config {
 	const ignoreElements = [...config.ignoreElements ?? []];
 	const ignoreValueConverters = [...config.ignoreValueConverters ?? []];
 	const ignoreBindingBehaviors = [...config.ignoreBindingBehaviors ?? []];

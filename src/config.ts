@@ -11,6 +11,13 @@ export interface Config {
 	readonly rules: Map<string, Config.RuleConfig>;
 }
 
+export class ConfigError extends Error {}
+export class ConfigRuleMergeError extends ConfigError {
+	public constructor(public readonly filename: string, public readonly ruleName: string, public readonly error: unknown) {
+		super(`Rule ${JSON.stringify(ruleName)} (${JSON.stringify(filename)}) could not be merged: ${error instanceof Error ? error.message : error}`);
+	}
+}
+
 export namespace Config {
 	export interface Json {
 		srcRoot?: string;
@@ -26,7 +33,7 @@ export namespace Config {
 		config: object;
 	}
 
-	export async function load(filename: string): Promise<Config> {
+	export async function load(filename: string, isRoot = true): Promise<Config> {
 		const context = dirname(filename);
 		const json = parse(await readFile(filename, "utf-8")) as Json;
 
@@ -58,10 +65,11 @@ export namespace Config {
 			}
 		}
 
+		const mergedRules = new Set<string>();
 		if (json.extends) {
 			const parentRuleMap = new Map<string, RuleConfig[]>();
 			for (const path of json.extends) {
-				const config = await load(resolve(context, path));
+				const config = await load(resolve(context, path), false);
 				config.rules.forEach((rule, name) => {
 					const parentRules = parentRuleMap.get(name);
 					if (parentRules === undefined) {
@@ -73,14 +81,38 @@ export namespace Config {
 			}
 
 			for (const [name, parentRules] of parentRuleMap) {
+				mergedRules.add(name);
 				const ruleModule = await getRuleModule(name);
 				const ruleConfig = rules.get(name);
-				rules.set(name, {
-					severity: mergeSeverity(ruleConfig?.severity, parentRules.map(rule => rule.severity)),
-					config: ruleModule.mergeConfig
-						? ruleModule.mergeConfig(ruleConfig?.config ?? {}, parentRules.map(rule => rule.config))
-						: (ruleConfig?.config ?? {}),
-				});
+				try {
+					rules.set(name, {
+						severity: mergeSeverity(ruleConfig?.severity, parentRules.map(rule => rule.severity)),
+						config: ruleModule.mergeConfig
+							? ruleModule.mergeConfig({
+								config: ruleConfig?.config ?? {},
+								parents: parentRules.map(rule => rule.config),
+								context,
+								isRoot,
+							})
+							: (ruleConfig?.config ?? {}),
+					});
+				} catch (error) {
+					throw new ConfigRuleMergeError(filename, name, error);
+				}
+			}
+		}
+
+		for (const [name, ruleConfig] of rules) {
+			if (!mergedRules.has(name)) {
+				const ruleModule = await getRuleModule(name);
+				if (ruleModule.mergeConfig) {
+					ruleConfig.config = ruleModule.mergeConfig({
+						config: ruleConfig.config,
+						parents: [],
+						context,
+						isRoot,
+					});
+				}
 			}
 		}
 

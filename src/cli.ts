@@ -7,7 +7,7 @@ import { Config } from "./config";
 import { Severity } from "./severity";
 import { Project } from "./project";
 import { Position } from "@mpt/line-map";
-import { resolve } from "path";
+import { relative, resolve } from "path";
 
 interface Args extends parseArgv.Arguments {
 	config?: string;
@@ -16,6 +16,7 @@ interface Args extends parseArgv.Arguments {
 }
 
 (async () => {
+	const cwd = process.cwd();
 	const args = parseArgv(process.argv.slice(2), {
 		string: ["config"],
 		boolean: ["watch", "color"],
@@ -46,9 +47,9 @@ interface Args extends parseArgv.Arguments {
 
 		function formatSeverity(severity: Severity) {
 			return ({
-				error: colors.red,
-				warn: colors.yellow,
-				info: colors.cyan,
+				error: colors.redBright,
+				warn: colors.yellowBright,
+				info: colors.cyanBright,
 			} as Record<Severity, colors.StyleFunction>)[severity](severity);
 		}
 
@@ -56,6 +57,10 @@ interface Args extends parseArgv.Arguments {
 		const counts: Record<Severity, number> = { info: 0, warn: 0, error: 0 };
 
 		for (const [file, fileDiagnostics] of diagnostics) {
+			if (fileDiagnostics.length > 0) {
+				console.log(colors.cyan(`${relative(cwd, file.filename)}:`));
+			}
+
 			fileCount++;
 			for (const { rule, severity, message, position } of fileDiagnostics) {
 				counts[severity]++;
