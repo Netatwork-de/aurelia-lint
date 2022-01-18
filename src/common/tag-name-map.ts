@@ -41,4 +41,8 @@ export class TagNameMap<T> {
 		}
 		return undefined;
 	}
+
+	public static getTagName(selector: string): string {
+		return selector.split("/").pop()!;
+	}
 }

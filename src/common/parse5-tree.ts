@@ -1,5 +1,5 @@
-import { Attribute, DocumentFragment, Element, Location, Node } from "parse5";
-import { getAttrList, isElementNode } from "parse5/lib/tree-adapters/default";
+import { Attribute, DocumentFragment, Element, Location, Node, TextNode } from "parse5";
+import { getAttrList, isElementNode, isTextNode } from "parse5/lib/tree-adapters/default";
 
 export function isDocumentFragment(value: Node): value is DocumentFragment {
 	return value.nodeName === "#document-fragment";
@@ -20,4 +20,8 @@ export function getParentElement(value: Element): Element | null {
 
 export function getAttrValueOffset(attr: Attribute, location: Location): number {
 	return location.endOffset - attr.value.length - 1;
+}
+
+export function isNonEmptyTextNode(node: Node): node is TextNode {
+	return isTextNode(node) && /\S/.test(node.value);
 }

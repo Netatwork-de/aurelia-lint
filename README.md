@@ -99,6 +99,47 @@ rules: {
 ## `editorconfig-format`
 Ensure that all template files are correctly formatted according to the respective `.editorconfig` file. This rule validates indentation, line endings and trailing whitespace.
 
+## `element-nesting`
+Allow or disallow specific element children.
+
+```js
+rules: {
+	"element-nesting": {
+		elements: {
+			"text-block": {
+				categories: ["block"],
+
+				// Either allow only specific elements:
+				allow: [
+					// Allows <example-element>:
+					"example-element",
+
+					// Allows all elements that have the "inline" category:
+					"@inline"
+				],
+				// or disallow specific elements:
+				disallow: [...]
+
+				// Disallow text content:
+				// - Text content is allowed by default.
+				// - Whitespace is always ignored.
+				allowText: false,
+			},
+
+			"span": {
+				categories: ["inline"],
+			},
+			"b": {
+				categories: ["inline"],
+			},
+
+			// Slashes can be used to target specifically nested elements:
+			"list/list-column": { ... }
+		}
+	},
+}
+```
+
 ## `no-dead-templates`
 Require `<template>` elements to have at least one of the following attributes: `"id", "if", "else", "repeat", "replace-part"`
 
@@ -151,6 +192,7 @@ rules: {
 ## 1.2
 + Add `attribute-usage` rule.
 + Add `editorconfig-format` rule.
++ Add `element-nesting` rule.
 + Add `no-invalid-bindings` rule.
 
 ## 1.1
