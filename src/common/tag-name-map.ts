@@ -1,28 +1,30 @@
 import { Element } from "parse5";
 import { getParentElement } from "./parse5-tree";
 
-export class TagNameSelectors {
+export class TagNameMap<T> {
 	private readonly _selectorEndings = new Set<string>();
-	private readonly _selectors = new Set<string>();
+	private readonly _selectors = new Map<string, T>();
 
-	public add(selector: string) {
+	public set(selector: string, value: T) {
 		const parts = selector.split("/");
 		for (let i = 1; i < parts.length; i++) {
 			this._selectorEndings.add(parts.slice(i).join("/"));
 		}
-		this._selectors.add(selector);
+		this._selectors.set(selector, value);
 	}
 
-	public addAll(selectors: Iterable<string>) {
+	public setAll(selectors: Iterable<string>, value: T) {
 		for (const selector of selectors) {
-			this.add(selector);
+			this.set(selector, value);
 		}
 	}
 
-	public test(element: Element) {
+	public get(element: Element): T | undefined {
 		const tagName = element.tagName;
-		if (this._selectors.has(tagName)) {
-			return true;
+
+		const value = this._selectors.get(tagName);
+		if (value !== undefined) {
+			return value;
 		}
 
 		let path = tagName;
@@ -32,10 +34,11 @@ export class TagNameSelectors {
 			if (node) {
 				path = node.tagName + "/" + path;
 			}
-			if (this._selectors.has(path)) {
-				return true;
+			const value = this._selectors.get(path);
+			if (value !== undefined) {
+				return value;
 			}
 		}
-		return false;
+		return undefined;
 	}
 }

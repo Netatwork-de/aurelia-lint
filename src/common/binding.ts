@@ -10,6 +10,24 @@ export const bindingSuffixes = new Set<string>([
 
 export const bindingParser = new Parser();
 
+export interface AttributeName {
+	name: string;
+	suffix?: string;
+}
+
+export function parseAttributeName(name: string): AttributeName {
+	const dot = name.indexOf(".");
+	return dot < 0
+		? {
+			name,
+			suffix: undefined,
+		}
+		: {
+			name: name.slice(0, dot),
+			suffix: name.slice(dot + 1),
+		};
+}
+
 /**
  * This is an implementation of the same interpolation syntax that is used in aurelia v1 with
  * the difference, that this one does not parse expressions and reports source code offsets.

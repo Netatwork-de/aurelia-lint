@@ -7,7 +7,7 @@ import { parallel } from "./common/promises";
 import { ProjectContext } from "./project-context";
 import { ViewResourceNames } from "./view-resource-names";
 import { Ranges } from "./ranges";
-import { bindingSuffixes, parseInterpolation } from "./common/binding";
+import { bindingSuffixes, parseAttributeName, parseInterpolation } from "./common/binding";
 
 export class TemplateFile {
 	public readonly viewResourceNames = new ViewResourceNames();
@@ -60,10 +60,10 @@ export class TemplateFile {
 	public traverseBindings(visit: (binding: TemplateFile.Binding) => void): void {
 		this.traverseElements(elem => {
 			elem.attrs.forEach(attr => {
-				const parts = attr.name.split(".");
+				const { suffix } = parseAttributeName(attr.name);
 				const location = elem.sourceCodeLocation!.attrs![attr.name];
 				const valueOffset = getAttrValueOffset(attr, location);
-				if (parts.length > 1 && bindingSuffixes.has(parts[parts.length - 1])) {
+				if (suffix && bindingSuffixes.has(suffix)) {
 					visit({
 						type: "attributeBinding",
 						attrName: attr.name,

@@ -1,3 +1,4 @@
+import { parseAttributeName } from "../common/binding";
 import { isDocumentFragment } from "../common/parse5-tree";
 import { Rule, RuleContext } from "../rule";
 
@@ -13,8 +14,8 @@ export class NoDeadTemplates implements Rule {
 	public evaluate(ctx: RuleContext) {
 		ctx.file.traverseElements(elem => {
 			if (elem.tagName === "template" && !isDocumentFragment(elem.parentNode) && !elem.attrs.some(attr => {
-				const parts = attr.name.split(".");
-				return controlAttributes.has(parts[0]);
+				const { name } = parseAttributeName(attr.name);
+				return controlAttributes.has(name);
 			})) {
 				const location = elem.sourceCodeLocation!.startTag ?? elem.sourceCodeLocation!;
 				ctx.emit({

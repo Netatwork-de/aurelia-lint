@@ -74,6 +74,28 @@ Optionally, disable comments can have multiple lines with an explanation why the
 
 # Builtin Rules
 
+## `attribute-usage`
+Require or disallow attributes on specific elements. This rule automatically ignores suffixes like `.bind`.
+
+```js
+rules: {
+	"attribute-usage": {
+		elements: {
+			"example-element": {
+				// Disallow the use of specific attributes:
+				disallow: ["id", "title"],
+
+				// Require specific attributes to be present:
+				require: ["value"],
+			},
+
+			// Slashes can be used to target specifically nested elements:
+			"list/list-column": { ... },
+		}
+	}
+}
+```
+
 ## `editorconfig-format`
 Ensure that all template files are correctly formatted according to the respective `.editorconfig` file. This rule validates indentation, line endings and trailing whitespace.
 
@@ -127,6 +149,7 @@ rules: {
 # Changelog
 
 ## 1.2
++ Add `attribute-usage` rule.
 + Add `editorconfig-format` rule.
 + Add `no-invalid-bindings` rule.
 

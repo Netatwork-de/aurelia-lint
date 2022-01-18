@@ -1,10 +1,8 @@
 import { ValueConverter, BindingBehavior, Expression } from "aurelia-binding";
-import { Element } from "parse5";
-import { getParentElement } from "../common/parse5-tree";
 import { bindingParser } from "../common/binding";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
-import { TagNameSelectors } from "../common/tag-name-selectors";
+import { TagNameMap } from "../common/tag-name-map";
 
 const aureliaElements = new Set<string>([
 	"template",
@@ -31,7 +29,7 @@ export function mergeConfig({ config, parents }: RuleMergeConfigContext<RequireV
 }
 
 export class RequireViewResources implements Rule {
-	private readonly _ignoreElements = new TagNameSelectors();
+	private readonly _ignoreElements = new TagNameMap<boolean>();
 	private readonly _ignoreValueConverters = new Set<string>();
 	private readonly _ignoreBindingBehaviors = new Set<string>([
 		"throttle",
@@ -43,8 +41,8 @@ export class RequireViewResources implements Rule {
 	]);
 
 	public configure(config: RequireViewResources.Config) {
-		this._ignoreElements.addAll(aureliaElements);
-		config.ignoreElements?.forEach(n => this._ignoreElements.add(n));
+		this._ignoreElements.setAll(aureliaElements, true);
+		config.ignoreElements?.forEach(n => this._ignoreElements.set(n, true));
 		config.ignoreValueConverters?.forEach(n => this._ignoreValueConverters.add(n));
 		config.ignoreBindingBehaviors?.forEach(n => this._ignoreBindingBehaviors.add(n));
 	}
@@ -88,7 +86,7 @@ export class RequireViewResources implements Rule {
 
 		ctx.file.traverseElements(elem => {
 			const tagName = elem.tagName;
-			if (this._ignoreElements.test(elem)) {
+			if (this._ignoreElements.get(elem) ?? false) {
 				return;
 			}
 
