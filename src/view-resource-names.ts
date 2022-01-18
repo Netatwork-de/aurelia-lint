@@ -5,11 +5,13 @@ export class ViewResourceNames {
 	public readonly customElements = new Map<string, ViewResourceNames.RequireInfo | undefined>();
 	public readonly valueConverters = new Map<string, ViewResourceNames.RequireInfo | undefined>();
 	public readonly bindingBehaviors = new Map<string, ViewResourceNames.RequireInfo | undefined>();
+	public readonly customAttributes = new Map<string, ViewResourceNames.RequireInfo | undefined>();
 
 	public add(names: ViewResourceNames, overrideRequireInfo?: ViewResourceNames.RequireInfo) {
 		names.customElements.forEach((requireInfo, n) => this.customElements.set(n, overrideRequireInfo ?? requireInfo));
 		names.valueConverters.forEach((requireInfo, n) => this.valueConverters.set(n, overrideRequireInfo ?? requireInfo));
 		names.bindingBehaviors.forEach((requireInfo, n) => this.bindingBehaviors.set(n, overrideRequireInfo ?? requireInfo));
+		names.customAttributes.forEach((requireInfo, n) => this.customAttributes.set(n, overrideRequireInfo ?? requireInfo))
 	}
 
 	public addCustomElement(name: string, requireInfo?: ViewResourceNames.RequireInfo) {
@@ -33,9 +35,16 @@ export class ViewResourceNames {
 		}), requireInfo);
 	}
 
+	public addCustomAttribute(name: string, requireInfo?: ViewResourceNames.RequireInfo) {
+		this.customAttributes.set(decamelize(name, {
+			preserveConsecutiveUppercase: true,
+			separator: "-",
+		}), requireInfo);
+	}
+
 	public getRequires(): Map<number, ViewResourceNames.RequireInfo> {
 		const map = new Map<number, ViewResourceNames.RequireInfo>();
-		for (const source of [this.customElements, this.valueConverters, this.bindingBehaviors]) {
+		for (const source of [this.customElements, this.valueConverters, this.bindingBehaviors, this.customAttributes]) {
 			for (const info of source.values()) {
 				if (info !== undefined) {
 					map.set(info.startOffset, info);

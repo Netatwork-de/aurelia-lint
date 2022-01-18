@@ -12,6 +12,7 @@ const resolve = promisify(resolveCallback) as unknown as (path: string, options:
 const CUSTOM_ELEMENT_SUFFIX = "CustomElement";
 const VALUE_CONVERTER_SUFFIX = "ValueConverter";
 const BINDING_BEHAVIOR_SUFFIX = "BindingBehavior";
+const CUSTOM_ATTRIBUTE_SUFFIX = "CustomAttribute";
 
 export class ProjectContext {
 	private readonly _srcRoot?: string;
@@ -102,15 +103,18 @@ export class ProjectContext {
 				(function traverse(node: ts.Node) {
 					if (ts.isClassDeclaration(node)) {
 						if (node.name?.escapedText && node.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)) {
+							const name = node.name.escapedText;
 
-							if (node.name.escapedText.endsWith(CUSTOM_ELEMENT_SUFFIX)) {
-								names.addCustomElement(node.name.escapedText.slice(0, -CUSTOM_ELEMENT_SUFFIX.length));
-							} else if (node.name.escapedText.endsWith(VALUE_CONVERTER_SUFFIX)) {
-								names.addValueConverter(node.name.escapedText.slice(0, -VALUE_CONVERTER_SUFFIX.length));
-							} else if (node.name.escapedText.endsWith(BINDING_BEHAVIOR_SUFFIX)) {
-								names.addBindingBehavior(node.name.escapedText.slice(0, -BINDING_BEHAVIOR_SUFFIX.length));
+							if (name.endsWith(CUSTOM_ELEMENT_SUFFIX)) {
+								names.addCustomElement(name.slice(0, -CUSTOM_ELEMENT_SUFFIX.length));
+							} else if (name.endsWith(VALUE_CONVERTER_SUFFIX)) {
+								names.addValueConverter(name.slice(0, -VALUE_CONVERTER_SUFFIX.length));
+							} else if (name.endsWith(BINDING_BEHAVIOR_SUFFIX)) {
+								names.addBindingBehavior(name.slice(0, -BINDING_BEHAVIOR_SUFFIX.length));
+							} else if (name.endsWith(CUSTOM_ATTRIBUTE_SUFFIX)) {
+								names.addCustomAttribute(name.slice(0, -CUSTOM_ATTRIBUTE_SUFFIX.length));
 							} else {
-								names.addCustomElement(node.name.escapedText);
+								names.addCustomElement(name);
 							}
 
 							if (node.decorators) {
@@ -123,7 +127,17 @@ export class ProjectContext {
 													names.addCustomElement(arg.text);
 													break;
 
-												// TODO: Support decorators for value converters & binding behaviors.
+												case "valueConverter":
+													names.addValueConverter(arg.text);
+													break;
+
+												case "bindingBehavior":
+													names.addBindingBehavior(arg.text);
+													break;
+
+												case "customAttribute":
+													names.addCustomAttribute(arg.text);
+													break;
 											}
 										}
 									}

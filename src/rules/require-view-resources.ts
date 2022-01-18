@@ -1,5 +1,5 @@
 import { ValueConverter, BindingBehavior, Expression } from "aurelia-binding";
-import { bindingParser } from "../common/binding";
+import { bindingParser, parseAttributeName } from "../common/binding";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
 import { TagNameMap } from "../common/tag-name-map";
@@ -85,6 +85,11 @@ export class RequireViewResources implements Rule {
 		});
 
 		ctx.file.traverseElements(elem => {
+			elem.attrs.forEach(attr => {
+				const { name } = parseAttributeName(attr.name);
+				useRequireInfo(names.customAttributes.get(name));
+			});
+
 			const tagName = elem.tagName;
 			if (this._ignoreElements.get(elem) ?? false) {
 				return;
