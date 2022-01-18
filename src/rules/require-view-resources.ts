@@ -4,6 +4,7 @@ import { getParentElement } from "../common/parse5-tree";
 import { bindingParser } from "../common/binding";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
+import { TagNameSelectors } from "../common/tag-name-selectors";
 
 const aureliaElements = new Set<string>([
 	"template",
@@ -30,9 +31,7 @@ export function mergeConfig({ config, parents }: RuleMergeConfigContext<RequireV
 }
 
 export class RequireViewResources implements Rule {
-	private readonly _ignoreElements = new Set(aureliaElements);
-	private readonly _ignoreElementEndings = new Set();
-
+	private readonly _ignoreElements = new TagNameSelectors();
 	private readonly _ignoreValueConverters = new Set<string>();
 	private readonly _ignoreBindingBehaviors = new Set<string>([
 		"throttle",
@@ -44,14 +43,8 @@ export class RequireViewResources implements Rule {
 	]);
 
 	public configure(config: RequireViewResources.Config) {
-		config.ignoreElements?.forEach(selector => {
-			const parts = selector.split("/");
-			for (let i = 1; i < parts.length; i++) {
-				this._ignoreElementEndings.add(parts.slice(i).join("/"));
-			}
-			this._ignoreElements.add(selector);
-		});
-
+		this._ignoreElements.addAll(aureliaElements);
+		config.ignoreElements?.forEach(n => this._ignoreElements.add(n));
 		config.ignoreValueConverters?.forEach(n => this._ignoreValueConverters.add(n));
 		config.ignoreBindingBehaviors?.forEach(n => this._ignoreBindingBehaviors.add(n));
 	}
@@ -95,19 +88,8 @@ export class RequireViewResources implements Rule {
 
 		ctx.file.traverseElements(elem => {
 			const tagName = elem.tagName;
-			if (this._ignoreElements.has(tagName)) {
+			if (this._ignoreElements.test(elem)) {
 				return;
-			}
-			let path = tagName;
-			let node: Element | null = elem;
-			while (node && this._ignoreElementEndings.has(path)) {
-				node = getParentElement(node);
-				if (node) {
-					path = node.tagName + "/" + path;
-				}
-				if (this._ignoreElements.has(path)) {
-					return;
-				}
 			}
 
 			if (names.customElements.has(tagName)) {
