@@ -3,6 +3,7 @@ import { TemplateFile } from "./template-file";
 
 export interface RuleDiagnostic {
 	message: string;
+	details?: string;
 	position?: RuleDiagnosticPosition;
 }
 

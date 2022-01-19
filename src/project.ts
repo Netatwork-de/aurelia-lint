@@ -1,4 +1,5 @@
 import { readFile } from "fs/promises";
+import { formatObject } from "./common/formatting";
 import { createFileMatcher, DisposeWatcher, FileMatcherFn, findFiles, watchFiles } from "./common/files";
 import { Config } from "./config";
 import { ProjectContext } from "./project-context";
@@ -40,20 +41,38 @@ export class Project {
 
 	private evaluateFile(file: TemplateFile): Project.Diagnostic[] {
 		const diagnostics: Project.Diagnostic[] = [];
-		this._rules.forEach(({ name, rule, severity }) => {
-			rule.evaluate({
-				file,
-				emit(diagnostic) {
-					if (!file.disabledRules.has(name, diagnostic.position?.[0] ?? 0)) {
-						diagnostics.push({
-							rule: name,
-							severity,
-							...diagnostic,
-						});
-					}
+		if (file.createErrors.length > 0) {
+			file.createErrors.forEach(diagnostic => {
+				diagnostics.push({
+					severity: "error",
+					...diagnostic,
+				});
+			});
+		} else {
+			this._rules.forEach(({ name, rule, severity }) => {
+				try {
+					rule.evaluate({
+						file,
+						emit(diagnostic) {
+							if (!file.disabledRules.has(name, diagnostic.position?.[0] ?? 0)) {
+								diagnostics.push({
+									rule: name,
+									severity,
+									...diagnostic,
+								});
+							}
+						}
+					});
+				} catch (error) {
+					diagnostics.push({
+						rule: name,
+						severity: "error",
+						message: "Failed to evaluate rule.",
+						details: formatObject(error),
+					});
 				}
 			});
-		});
+		}
 		return diagnostics;
 	}
 
@@ -106,7 +125,7 @@ export class Project {
 
 export declare namespace Project {
 	export interface Diagnostic extends RuleDiagnostic {
-		rule: string;
+		rule?: string;
 		severity: Severity;
 	}
 

@@ -2,18 +2,21 @@ import { CommentNode, DocumentFragment, Element, Node, parseFragment, TextNode }
 import { LineMap } from "@mpt/line-map";
 import { getTemplateContent, isCommentNode, isElementNode, isTextNode } from "parse5/lib/tree-adapters/default";
 import { basename, dirname as getDirname, normalize } from "path";
-import { getAttr, getAttrValueOffset, isDocumentFragment, isTemplate } from "./common/parse5-tree";
+import { getAttr, getAttrLocation, getAttrValueOffset, isDocumentFragment, isTemplate } from "./common/parse5-tree";
 import { parallel } from "./common/promises";
 import { ProjectContext } from "./project-context";
 import { ViewResourceNames } from "./view-resource-names";
 import { Ranges } from "./ranges";
 import { bindingSuffixes, parseAttributeName, parseInterpolation } from "./common/binding";
+import { RuleDiagnostic } from "./rule";
+import { formatObject } from "./common/formatting";
 
 export class TemplateFile {
 	public readonly viewResourceNames = new ViewResourceNames();
 	public readonly lineMap: LineMap;
 	public readonly tree: DocumentFragment;
 	public readonly disabledRules: Ranges<string>;
+	public readonly createErrors: RuleDiagnostic[] = [];
 
 	private constructor(
 		public readonly filename: string,
@@ -61,7 +64,7 @@ export class TemplateFile {
 		this.traverseElements(elem => {
 			elem.attrs.forEach(attr => {
 				const { suffix } = parseAttributeName(attr.name);
-				const location = elem.sourceCodeLocation!.attrs![attr.name];
+				const location = getAttrLocation(attr.name, elem);
 				const valueOffset = getAttrValueOffset(attr, location);
 				if (suffix && bindingSuffixes.has(suffix)) {
 					visit({
@@ -111,73 +114,80 @@ export class TemplateFile {
 
 		const template = new TemplateFile(filename, dirname, source);
 
-		const disabledRuleNames = new Map<string, number>();
+		try {
+			const disabledRuleNames = new Map<string, number>();
 
-		template.traverseComments(comment => {
-			const ignore = /\s*aurelia-lint-(disable|enable|disable-line)?\s(\S+)(?:\s+|$)/.exec(comment.data);
-			if (ignore) {
-				const [, type, ruleName] = ignore;
-				switch (type) {
-					case "disable-line": {
-						const line = template.lineMap.getPosition(comment.sourceCodeLocation!.endOffset)!.line + 1;
-						const start = template.lineMap.getOffset({ line, character: 0 });
-						if (start !== null) {
-							template.disabledRules.add(
-								start,
-								template.lineMap.getOffset({ line: line + 1, character: 0 }) ?? source.length,
-								ruleName
-							);
+			template.traverseComments(comment => {
+				const ignore = /\s*aurelia-lint-(disable|enable|disable-line)?\s(\S+)(?:\s+|$)/.exec(comment.data);
+				if (ignore) {
+					const [, type, ruleName] = ignore;
+					switch (type) {
+						case "disable-line": {
+							const line = template.lineMap.getPosition(comment.sourceCodeLocation!.endOffset)!.line + 1;
+							const start = template.lineMap.getOffset({ line, character: 0 });
+							if (start !== null) {
+								template.disabledRules.add(
+									start,
+									template.lineMap.getOffset({ line: line + 1, character: 0 }) ?? source.length,
+									ruleName
+								);
+							}
+							break;
 						}
-						break;
+
+						case "disable":
+							disabledRuleNames.set(ruleName, comment.sourceCodeLocation!.endOffset);
+							break;
+
+						case "enable":
+							const start = disabledRuleNames.get(ruleName);
+							if (start !== undefined) {
+								disabledRuleNames.delete(ruleName);
+								template.disabledRules.add(start, comment.sourceCodeLocation!.startOffset, ruleName);
+							}
+							break;
 					}
-
-					case "disable":
-						disabledRuleNames.set(ruleName, comment.sourceCodeLocation!.endOffset);
-						break;
-
-					case "enable":
-						const start = disabledRuleNames.get(ruleName);
-						if (start !== undefined) {
-							disabledRuleNames.delete(ruleName);
-							template.disabledRules.add(start, comment.sourceCodeLocation!.startOffset, ruleName);
-						}
-						break;
 				}
-			}
-		});
+			});
 
-		disabledRuleNames.forEach((_, ruleName) => {
-			template.disabledRules.add(0, source.length, ruleName);
-		});
+			disabledRuleNames.forEach((_, ruleName) => {
+				template.disabledRules.add(0, source.length, ruleName);
+			});
 
-		const tasks: Promise<void>[] = [];
-		tasks.push((async () => {
-			let viewModel: string | null = null;
-			try {
-				viewModel = await projectContext.resolveSourcePath(`./${basename(filename, ".html")}`, dirname);
-			} catch {}
-			if (viewModel !== null) {
-				template.viewResourceNames.add(await projectContext.getExportedViewResourceNames(viewModel));
-			}
-		})());
-		template.traverseElements(element => {
-			if (element.tagName === "require") {
-				const request = getAttr(element, "from");
-				if (request) {
-					const location = element.sourceCodeLocation!.attrs!.from;
-					tasks.push((async () => {
-						const filename = await projectContext.resolveSourcePath(request, dirname);
-						if (filename !== null) {
-							template.viewResourceNames.add(await projectContext.getExportedViewResourceNames(filename), {
-								startOffset: location.startOffset,
-								endOffset: location.endOffset,
-							});
-						}
-					})());
+			const tasks: Promise<void>[] = [];
+			tasks.push((async () => {
+				let viewModel: string | null = null;
+				try {
+					viewModel = await projectContext.resolveSourcePath(`./${basename(filename, ".html")}`, dirname);
+				} catch {}
+				if (viewModel !== null) {
+					template.viewResourceNames.add(await projectContext.getExportedViewResourceNames(viewModel));
 				}
-			}
-		});
-		await parallel(tasks);
+			})());
+			template.traverseElements(element => {
+				if (element.tagName === "require") {
+					const request = getAttr(element, "from");
+					if (request) {
+						const location = getAttrLocation("from", element);
+						tasks.push((async () => {
+							const filename = await projectContext.resolveSourcePath(request, dirname);
+							if (filename !== null) {
+								template.viewResourceNames.add(await projectContext.getExportedViewResourceNames(filename), {
+									startOffset: location.startOffset,
+									endOffset: location.endOffset,
+								});
+							}
+						})());
+					}
+				}
+			});
+			await parallel(tasks);
+		} catch (error) {
+			template.createErrors.push({
+				message: `Failed to create template file.`,
+				details: formatObject(error),
+			});
+		}
 
 		return template;
 	}

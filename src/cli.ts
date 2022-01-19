@@ -8,6 +8,7 @@ import { Severity } from "./severity";
 import { Project } from "./project";
 import { Position } from "@mpt/line-map";
 import { relative, resolve } from "path";
+import { indentText } from "./common/formatting";
 
 interface Args extends parseArgv.Arguments {
 	config?: string;
@@ -62,16 +63,16 @@ interface Args extends parseArgv.Arguments {
 			}
 
 			fileCount++;
-			for (const { rule, severity, message, position } of fileDiagnostics) {
+			for (const { rule, severity, message, details, position } of fileDiagnostics) {
 				counts[severity]++;
 
 				console.log(`  ${
 					formatSeverity(severity)
 				}${
 					position ? ` (${formatPosition(file.lineMap.getPosition(position[0])!)})` : ""
-				}: ${message} ${
+				}: ${message}${rule ? ` ${
 					colors.gray(`(${rule})`)
-				}`);
+				}` : ""}`);
 
 				if (position) {
 					const sourceText = file.source.slice(position[0], position[1]);
@@ -79,6 +80,11 @@ interface Args extends parseArgv.Arguments {
 						console.log(colors.gray(ellipsis(`    ${sourceText}`)));
 					}
 				}
+
+				if (details) {
+					console.log(indentText(details, "  | "));
+				}
+
 				console.log();
 			}
 		}

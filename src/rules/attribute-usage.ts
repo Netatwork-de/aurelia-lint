@@ -1,4 +1,5 @@
 import { parseAttributeName } from "../common/binding";
+import { getAttrLocation } from "../common/parse5-tree";
 import { TagNameMap } from "../common/tag-name-map";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 
@@ -47,7 +48,7 @@ export class AttributeUsage implements Rule {
 			const missing = new Set(config?.require);
 
 			elem.attrs.forEach(attr => {
-				const location = elem.sourceCodeLocation!.attrs![attr.name];
+				const location = getAttrLocation(attr.name, elem);
 				const { name } = parseAttributeName(attr.name);
 
 				missing.delete(name);

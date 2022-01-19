@@ -1,4 +1,4 @@
-import { Attribute, DocumentFragment, Element, Location, Node, TextNode } from "parse5";
+import { Attribute, DocumentFragment, Element, ElementLocation, Location, Node, TextNode } from "parse5";
 import { getAttrList, isElementNode, isTextNode } from "parse5/lib/tree-adapters/default";
 
 export function isDocumentFragment(value: Node): value is DocumentFragment {
@@ -11,6 +11,11 @@ export function isTemplate(value: Node): value is Element {
 
 export function getAttr(value: Element, name: string): string | undefined {
 	return getAttrList(value).find(attr => attr.name === name)?.value;
+}
+
+export function getAttrLocation(attrName: string, element: Element) {
+	const location = element.sourceCodeLocation!;
+	return location.attrs![attrName] ?? location.attrs![attrName.toLowerCase()] ?? location.startTag;
 }
 
 export function getParentElement(value: Element): Element | null {

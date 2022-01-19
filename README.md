@@ -189,6 +189,9 @@ rules: {
 
 # Changelog
 
+## 1.3
++ Add diagnostic details and error handling if loading files or rule evaluation fails.
+
 ## 1.2
 + Add `attribute-usage` rule.
 + Add `editorconfig-format` rule.
