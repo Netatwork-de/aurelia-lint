@@ -189,6 +189,9 @@ rules: {
 
 # Changelog
 
+## 1.4
++ Add language server support for automatic project reloading.
+
 ## 1.3
 + Add diagnostic details and error handling if loading files or rule evaluation fails.
 

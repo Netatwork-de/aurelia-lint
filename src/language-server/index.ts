@@ -1,7 +1,8 @@
 import createLimit from "p-limit";
+import { basename } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { createConnection, ProposedFeatures, TextDocuments, TextDocumentSyncKind, WorkspaceFolder, DiagnosticSeverity, Diagnostic } from "vscode-languageserver/node";
+import { createConnection, ProposedFeatures, TextDocuments, TextDocumentSyncKind, WorkspaceFolder, DiagnosticSeverity, Diagnostic, FileChangeType } from "vscode-languageserver/node";
 import { findFiles } from "../common/files";
 import { Config } from "../config";
 import { Project } from "../project";
@@ -61,6 +62,22 @@ connection.onInitialized(async () => {
 		for (const workspace of added) {
 			await addWorkspace(workspace);
 		}
+	});
+
+	connection.onDidChangeWatchedFiles(({ changes }) => {
+		changes.forEach(change => {
+			const filename = fileURLToPath(change.uri);
+			if (configFilenames.includes(basename(filename))) {
+				projects.delete(filename);
+				if (change.type !== FileChangeType.Deleted) {
+					loadProject(filename);
+				}
+			} else {
+				projects.forEach(project => {
+					project.invalidateCache(filename);
+				});
+			}
+		});
 	});
 });
 

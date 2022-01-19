@@ -26,6 +26,10 @@ export class Project {
 		this._fileMatcher = createFileMatcher(config.context, config.include);
 	}
 
+	public invalidateCache(filename: string) {
+		this._context.invalidateCache(filename);
+	}
+
 	public includes(filename: string) {
 		return this._fileMatcher(filename);
 	}
