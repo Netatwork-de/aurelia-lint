@@ -189,6 +189,9 @@ rules: {
 
 # Changelog
 
+## 1.5
++ Add `ignore` option to `element-nesting` rule and properly handle `slot`, `template` and `let` elements.
+
 ## 1.4
 + Add language server support for automatic project reloading.
 
