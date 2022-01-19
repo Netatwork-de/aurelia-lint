@@ -2,6 +2,7 @@ import createLimit from "p-limit";
 import { basename } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import { TextDocument } from "vscode-languageserver-textdocument";
+import createMatcher, { Matcher } from "picomatch";
 import { createConnection, ProposedFeatures, TextDocuments, TextDocumentSyncKind, WorkspaceFolder, DiagnosticSeverity, Diagnostic, FileChangeType } from "vscode-languageserver/node";
 import { findFiles } from "../common/files";
 import { Config } from "../config";
@@ -23,6 +24,7 @@ const configFilenames = [
 let initialWorkspaces: WorkspaceFolder[];
 let onlyCurrentFiles: boolean;
 let ignorePaths: string[];
+let ignorePathMatchers: Matcher[] = [];
 
 connection.onInitialize(params => {
 	if (!params.workspaceFolders || !params.capabilities.workspace?.workspaceFolders) {
@@ -48,6 +50,9 @@ connection.onInitialized(async () => {
 
 	onlyCurrentFiles = settings.onlyCurrentFiles ?? false;
 	ignorePaths = settings.ignorePaths?.split("|").map(s => s.trim()) ?? ["**/node_modules"];
+	ignorePathMatchers = ignorePaths.map(path => {
+		return createMatcher(path.endsWith("/**") ? path : path + "/**");
+	});
 
 	console.log("Using settings", {
 		onlyCurrentFiles,
@@ -118,7 +123,7 @@ async function addWorkspace(workspace: WorkspaceFolder) {
 }
 
 function loadProject(configFilename: string) {
-	if (!/[\\/]node_modules[\\/]/.test(configFilename)) {
+	if (!ignorePathMatchers.some(m => m(configFilename))) {
 		queueTask(async () => {
 			if (!projects.has(configFilename)) {
 				console.log("Loading project:", configFilename);
