@@ -10,6 +10,7 @@ import { Project } from "../project";
 import { Severity } from "../severity";
 import { TemplateFile } from "../template-file";
 import { Settings } from "./settings";
+import { formatObject } from "../common/formatting";
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
@@ -129,6 +130,8 @@ function loadProject(configFilename: string) {
 				console.log("Loading project:", configFilename);
 
 				const config = await Config.load(configFilename);
+				console.log("Config for project:", configFilename, formatObject(config));
+
 				const project = await Project.create(config);
 
 				projects.set(configFilename, project);
