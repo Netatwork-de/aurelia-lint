@@ -5,10 +5,12 @@
 		"naw-aurelia-lint": "./dist/cli.js"
 	},
 	"scripts": {
-		"clean": "rimraf ./dist/**/*",
-		"start": "tsc -w",
-		"build": "tsc",
-		"prepack": "npm run build"
+		"clean": "rimraf ./dist/**/* ./test_out/**/*",
+		"start": "tsc -w -p tsconfig-cjs.json",
+		"build": "tsc -p tsconfig-cjs.json",
+		"test": "tsc -p tsconfig-test.json && ava -v",
+		"test:dev": "tsc -p tsconfig-test.json && concurrently \"tsc -p tsconfig-test.json -w\" \"ava -v -w\"",
+		"prepack": "npm test && npm run build"
 	},
 	"devDependencies": {
 		"@types/decamelize": "^3.0.3",
@@ -18,6 +20,7 @@
 		"@types/picomatch": "^2.3.0",
 		"@types/resolve": "^1.20.1",
 		"@types/yargs-parser": "^20.2.1",
+		"ava": "^4.0.1",
 		"concurrently": "^6.4.0",
 		"rimraf": "^3.0.2",
 		"typescript": "^4.5.2"

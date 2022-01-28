@@ -1,3 +1,5 @@
 /.github
 /.npmignore
 /tsconfig*
+/ava.config.js
+/test_out
