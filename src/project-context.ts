@@ -18,7 +18,7 @@ export class ProjectContext {
 	private readonly _srcRoot?: string;
 	private readonly _limit: createLimit.Limit;
 
-	private readonly _declarationPathCache = new Map<string, Promise<string>>();
+	private readonly _declarationPathCache = new Map<string, Promise<string | null>>();
 	private readonly _exportedNamesCache = new Map<string, Promise<ViewResourceNames>>();
 
 	public constructor(options: ProjectContext.Options) {
@@ -52,36 +52,34 @@ export class ProjectContext {
 				includeCoreModules: false,
 			};
 
-			let filename = await (async () => {
-				try {
-					return await resolve(request, resolveOptions);
-				} catch (error) {
-					if ((error as any).code === "MODULE_NOT_FOUND") {
-						try {
-							const regularPackage = /^([^\@][^\/]*)(\/.+)?$/.exec(request);
-							if (regularPackage) {
-								return await resolve(regularPackage[1] + "/src" + regularPackage[2], resolveOptions);
-							}
-						} catch {}
+			try {
+				return await resolve(request, resolveOptions);
+			} catch (error) {
+				if ((error as any).code === "MODULE_NOT_FOUND") {
+					try {
+						const regularPackage = /^([^\@][^\/]*)(\/.+)?$/.exec(request);
+						if (regularPackage) {
+							return await resolve(regularPackage[1] + "/src" + regularPackage[2], resolveOptions);
+						}
+					} catch {}
 
-						try {
-							const scopedPackage = /^(\@[^\/]+\/[^\/]+)(\/.+)?$/.exec(request);
-							if (scopedPackage) {
-								return await resolve(scopedPackage[1] + "/src" + scopedPackage[2], resolveOptions);
-							}
-						} catch {}
+					try {
+						const scopedPackage = /^(\@[^\/]+\/[^\/]+)(\/.+)?$/.exec(request);
+						if (scopedPackage) {
+							return await resolve(scopedPackage[1] + "/src" + scopedPackage[2], resolveOptions);
+						}
+					} catch {}
 
-						try {
-							if (this._srcRoot && /^[^\.]/.test(request)) {
-								return await resolve(join(this._srcRoot, request), resolveOptions);
-							}
-						} catch {}
-					}
-					throw error;
+					try {
+						if (this._srcRoot && /^[^\.]/.test(request)) {
+							return await resolve(join(this._srcRoot, request), resolveOptions);
+						}
+					} catch {}
+
+					return null;
 				}
-			})();
-
-			return filename;
+				throw error;
+			}
 		});
 
 		this._declarationPathCache.set(request, promise);

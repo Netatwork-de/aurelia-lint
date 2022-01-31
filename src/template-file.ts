@@ -17,6 +17,7 @@ export class TemplateFile {
 	public readonly tree: DocumentFragment;
 	public readonly disabledRules: Ranges<string>;
 	public readonly createErrors: RuleDiagnostic[] = [];
+	public readonly unresolvedRequires: TemplateFile.UnresolvedRequire[] = [];
 
 	private constructor(
 		public readonly filename: string,
@@ -118,8 +119,10 @@ export class TemplateFile {
 			const disabledRuleNames = new Map<string, number>();
 
 			template.traverseComments(comment => {
-				const ignore = /\s*aurelia-lint-(disable|enable|disable-line)?\s(\S+)(?:\s+|$)/.exec(comment.data);
-				if (ignore) {
+				const ignoreRegExp = /\s*aurelia-lint-(disable|enable|disable-line)?\s(\S+)(?:\s+|$)/g;
+
+				let ignore: RegExpExecArray | null;
+				while (ignore = ignoreRegExp.exec(comment.data)) {
 					const [, type, ruleName] = ignore;
 					switch (type) {
 						case "disable-line": {
@@ -171,7 +174,13 @@ export class TemplateFile {
 						const location = getAttrLocation("from", element);
 						tasks.push((async () => {
 							const filename = await projectContext.resolveSourcePath(request, dirname);
-							if (filename !== null) {
+							if (filename === null) {
+								template.unresolvedRequires.push({
+									start: location.startOffset,
+									end: location.endOffset,
+									from: request,
+								});
+							} else {
 								template.viewResourceNames.add(await projectContext.getExportedViewResourceNames(filename), {
 									startOffset: location.startOffset,
 									endOffset: location.endOffset,
@@ -212,4 +221,10 @@ export declare namespace TemplateFile {
 	}
 
 	export type Binding = AttributeBinding | InterpolationBinding;
+
+	export interface UnresolvedRequire {
+		start: number;
+		end: number;
+		from: string;
+	}
 }

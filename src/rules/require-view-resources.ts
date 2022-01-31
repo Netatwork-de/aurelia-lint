@@ -108,8 +108,15 @@ export class RequireViewResources implements Rule {
 
 		unusedRequires.forEach(info => {
 			ctx.emit({
-				message: `Unused <require> element`,
+				message: `Unused <require> element.`,
 				position: [info.startOffset, info.endOffset],
+			});
+		});
+
+		ctx.file.unresolvedRequires.forEach(info => {
+			ctx.emit({
+				message: `Module does not exist.`,
+				position: [info.start, info.end],
 			});
 		});
 	}

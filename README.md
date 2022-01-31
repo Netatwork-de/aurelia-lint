@@ -60,10 +60,11 @@ Or for the entire file:
 ...
 ```
 
-Optionally, disable comments can have multiple lines with an explanation why the rule is disabled:
+Optionally, disable comments can have multiple lines and multiple disable instructions or explanations:
 ```html
 <!--
 	aurelia-lint-disable example-rule
+	aurelia-lint-disable second-rule
 	Example rule is disabled because...
 -->
 ```
@@ -188,6 +189,10 @@ rules: {
 
 
 # Changelog
+
+## 1.6
++ Add diagnostic for unresolved modules to `require-view-resources` rule.
++ Support multiple disable instructions per comment.
 
 ## 1.5
 + Add `ignore` option to `element-nesting` rule and properly handle `slot`, `template` and `let` elements.
