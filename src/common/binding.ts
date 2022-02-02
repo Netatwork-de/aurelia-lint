@@ -1,4 +1,4 @@
-import { Parser } from "aurelia-binding";
+import { Expression, Parser } from "aurelia-binding";
 
 export const bindingSuffixes = new Set<string>([
 	"bind",
@@ -13,6 +13,13 @@ export const bindingParser = new Parser();
 export interface AttributeName {
 	name: string;
 	suffix?: string;
+}
+
+export function parseRepeaterBinding(expression: string): Expression {
+	const match = /of\s([^]+)$/.exec(expression);
+	return match === null
+		? bindingParser.parse(expression)
+		: bindingParser.parse(match[1]);
 }
 
 export function parseAttributeName(name: string): AttributeName {

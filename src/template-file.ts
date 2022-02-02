@@ -64,10 +64,19 @@ export class TemplateFile {
 	public traverseBindings(visit: (binding: TemplateFile.Binding) => void): void {
 		this.traverseElements(elem => {
 			elem.attrs.forEach(attr => {
-				const { suffix } = parseAttributeName(attr.name);
+				const { suffix, name } = parseAttributeName(attr.name);
 				const location = getAttrLocation(attr.name, elem);
 				const valueOffset = getAttrValueOffset(attr, location);
-				if (suffix && bindingSuffixes.has(suffix)) {
+				if (name === "repeat" && suffix === "for") {
+					visit({
+						type: "attributeRepeaterBinding",
+						attrName: attr.name,
+						expression: attr.value,
+						start: valueOffset,
+						end: valueOffset + attr.value.length,
+						elem,
+					});
+				} else if (suffix && bindingSuffixes.has(suffix)) {
 					visit({
 						type: "attributeBinding",
 						attrName: attr.name,
@@ -204,7 +213,7 @@ export class TemplateFile {
 
 export declare namespace TemplateFile {
 	export interface AttributeBinding extends BindingBase {
-		type: "attributeBinding" | "attributeInterpolation";
+		type: "attributeBinding" | "attributeRepeaterBinding" | "attributeInterpolation";
 		attrName: string;
 		elem: Element;
 	}

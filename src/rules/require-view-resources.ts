@@ -1,5 +1,5 @@
 import { ValueConverter, BindingBehavior, Expression } from "aurelia-binding";
-import { bindingParser, parseAttributeName } from "../common/binding";
+import { bindingParser, parseAttributeName, parseRepeaterBinding } from "../common/binding";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
 import { TagNameMap } from "../common/tag-name-map";
@@ -59,7 +59,11 @@ export class RequireViewResources implements Rule {
 
 		ctx.file.traverseBindings(binding => {
 			let expression: Expression | undefined = undefined;
-			try { expression = bindingParser.parse(binding.expression); } catch {}
+			try {
+				expression = binding.type === "attributeRepeaterBinding"
+					? parseRepeaterBinding(binding.expression)
+					: bindingParser.parse(binding.expression);
+			} catch {}
 			while (expression instanceof BindingBehavior) {
 				if (names.bindingBehaviors.has(expression.name)) {
 					useRequireInfo(names.bindingBehaviors.get(expression.name));
