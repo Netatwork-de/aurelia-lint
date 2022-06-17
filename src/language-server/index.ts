@@ -126,21 +126,25 @@ async function addWorkspace(workspace: WorkspaceFolder) {
 function loadProject(configFilename: string) {
 	if (!ignorePathMatchers.some(m => m(configFilename))) {
 		queueTask(async () => {
-			if (!projects.has(configFilename)) {
-				console.log("Loading project:", configFilename);
+			try {
+				if (!projects.has(configFilename)) {
+					console.log("Loading project:", configFilename);
 
-				const config = await Config.load(configFilename);
-				console.log("Config for project:", configFilename, formatObject(config));
+					const config = await Config.load(configFilename);
+					console.log("Config for project:", configFilename, formatObject(config));
 
-				const project = await Project.create(config);
+					const project = await Project.create(config);
 
-				projects.set(configFilename, project);
+					projects.set(configFilename, project);
 
-				if (!onlyCurrentFiles) {
-					for (const [file, fileDiagnostics] of await project.run()) {
-						emitDiagnostics(file, fileDiagnostics);
+					if (!onlyCurrentFiles) {
+						for (const [file, fileDiagnostics] of await project.run()) {
+							emitDiagnostics(file, fileDiagnostics);
+						}
 					}
 				}
+			} catch (error) {
+				console.error("Unable to load project:", configFilename, error);
 			}
 		});
 	}
