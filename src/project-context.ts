@@ -114,33 +114,30 @@ export class ProjectContext {
 							} else {
 								names.addCustomElement(name);
 							}
+							ts.getDecorators(node)?.forEach(decorator => {
+								if (ts.isCallExpression(decorator.expression) && ts.isIdentifier(decorator.expression.expression)) {
+									const arg = decorator.expression.arguments[0];
+									if (arg && ts.isStringLiteral(arg)) {
+										switch (decorator.expression.expression.escapedText) {
+											case "customElement":
+												names.addCustomElement(arg.text);
+												break;
 
-							if (node.decorators) {
-								node.decorators.forEach(decorator => {
-									if (ts.isCallExpression(decorator.expression) && ts.isIdentifier(decorator.expression.expression)) {
-										const arg = decorator.expression.arguments[0];
-										if (arg && ts.isStringLiteral(arg)) {
-											switch (decorator.expression.expression.escapedText) {
-												case "customElement":
-													names.addCustomElement(arg.text);
-													break;
+											case "valueConverter":
+												names.addValueConverter(arg.text);
+												break;
 
-												case "valueConverter":
-													names.addValueConverter(arg.text);
-													break;
+											case "bindingBehavior":
+												names.addBindingBehavior(arg.text);
+												break;
 
-												case "bindingBehavior":
-													names.addBindingBehavior(arg.text);
-													break;
-
-												case "customAttribute":
-													names.addCustomAttribute(arg.text);
-													break;
-											}
+											case "customAttribute":
+												names.addCustomAttribute(arg.text);
+												break;
 										}
 									}
-								});
-							}
+								}
+							});
 
 						}
 					} else {
