@@ -2,6 +2,7 @@
 
 ## 1.7
 + Prevent language server crashes when a project fails to load.
++ Fix resource names defined in typescript decorators.
 
 ## 1.6
 + Add diagnostic for unresolved modules to `require-view-resources` rule.
