@@ -16,18 +16,20 @@ const details = `See https://html.spec.whatwg.org/#valid-custom-element-name`;
 
 test("evaluate", async t => {
 	const file = await context.createTestFile(`
-		<require from="elements"></require>
-		<!-- Invalid custom element:  -->
-		<details></details>
+		<template>
+			<require from="elements"></require>
+			<!-- Invalid custom element:  -->
+			<details></details>
 
-		<!-- Valid regular element: -->
-		<button></button>
+			<!-- Valid regular element: -->
+			<button></button>
 
-		<!-- Valid custom element: -->
-		<valid-name></valid-name>
+			<!-- Valid custom element: -->
+			<valid-name></valid-name>
 
-		<!-- Reserved custom element: -->
-		<annotation-xml></annotation-xml>
+			<!-- Reserved custom element: -->
+			<annotation-xml></annotation-xml>
+		</template>
 	`);
 	const rule = new HtmlCustomElementCompat();
 	const diagnostics = evaluateTestRule(file, rule);
