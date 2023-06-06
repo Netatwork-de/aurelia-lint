@@ -1,5 +1,4 @@
 import { parseAttributeName } from "../common/binding";
-import { isDocumentFragment } from "../common/parse5-tree";
 import { Rule, RuleContext } from "../rule";
 
 const controlAttributes = new Set<string>([
