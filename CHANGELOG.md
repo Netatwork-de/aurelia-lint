@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8
++ Add `html-custom-element-compat` rule.
++ Fix detection of the root template in `no-dead-templates` rule.
+
 ## 1.7
 + Prevent language server crashes when a project fails to load.
 + Fix resource names defined in typescript decorators.
