@@ -48,7 +48,7 @@ export class RequireViewResources implements Rule {
 	}
 
 	public evaluate(ctx: RuleContext): void {
-		const names = ctx.file.viewResourceNames!;
+		const names = ctx.file.viewResourceNames;
 		const unusedRequires = names.getRequires();
 
 		function useRequireInfo(info: ViewResourceNames.RequireInfo | undefined) {

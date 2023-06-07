@@ -1,5 +1,4 @@
 import { parseAttributeName } from "../common/binding";
-import { isDocumentFragment } from "../common/parse5-tree";
 import { Rule, RuleContext } from "../rule";
 
 const controlAttributes = new Set<string>([
@@ -14,7 +13,7 @@ const controlAttributes = new Set<string>([
 export class NoDeadTemplates implements Rule {
 	public evaluate(ctx: RuleContext) {
 		ctx.file.traverseElements(elem => {
-			if (elem.tagName === "template" && !isDocumentFragment(elem.parentNode) && !elem.attrs.some(attr => {
+			if (elem.tagName === "template" && ctx.file.tree !== elem.parentNode && !elem.attrs.some(attr => {
 				const { name } = parseAttributeName(attr.name);
 				return controlAttributes.has(name);
 			})) {

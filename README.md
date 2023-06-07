@@ -141,6 +141,9 @@ rules: {
 }
 ```
 
+## `html-custom-element-compat`
+Enforce compatibility with the html custom element spec by enforcing [valid custom element names](https://html.spec.whatwg.org/#valid-custom-element-name). This prevents accidentally using semantic elements as custom element names like `<button>` or `<details>`.
+
 ## `no-dead-templates`
 Require `<template>` elements to have at least one of the following attributes: `"id", "if", "else", "repeat", "replace-part"`
 
