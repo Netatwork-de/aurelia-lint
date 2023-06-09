@@ -4,10 +4,8 @@ import NoDeadTemplates from "../../src/rules/no-dead-templates";
 import { evaluateTestRule } from "../_common/rules";
 import { getDiagnosticPositions } from "../_common/template-file";
 
-const context = new TestProjectContext();
-
 test("evaluate", async t => {
-	const file = await context.createTestFile(`
+	const file = await new TestProjectContext().createTestFile(`
 		<template>
 			<template>unused</template>
 			<template if="test">used</template>

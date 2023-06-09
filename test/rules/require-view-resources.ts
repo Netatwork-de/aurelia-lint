@@ -4,15 +4,15 @@ import RequireViewResources from "../../src/rules/require-view-resources";
 import { evaluateTestRule } from "../_common/rules";
 import { getDiagnosticPositions } from "../_common/template-file";
 
-const context = new TestProjectContext({
-	test: {
-		"imported-element": "customElement",
-		"importedValueConverter": "valueConverter",
-		"importedBindingBehavior": "bindingBehavior",
-	},
-});
-
 test("evaluate", async t => {
+	const context = new TestProjectContext({
+		test: {
+			"imported-element": "customElement",
+			"importedValueConverter": "valueConverter",
+			"importedBindingBehavior": "bindingBehavior",
+		},
+	});
+
 	const file = await context.createTestFile(`
 		<template>
 			<require from="test"></require>
