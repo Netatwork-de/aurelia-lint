@@ -17,7 +17,7 @@ export class TemplateFile {
 	public readonly tree: DocumentFragment;
 	public readonly disabledRules: Ranges<string>;
 	public readonly createErrors: RuleDiagnostic[] = [];
-	public readonly unresolvedRequires: TemplateFile.UnresolvedRequire[] = [];
+	public readonly requires: TemplateFile.Require[] = [];
 
 	private constructor(
 		public readonly filename: string,
@@ -183,13 +183,13 @@ export class TemplateFile {
 						const location = getAttrLocation("from", element);
 						tasks.push((async () => {
 							const filename = await projectContext.resolveSourcePath(request, dirname);
-							if (filename === null) {
-								template.unresolvedRequires.push({
-									start: location.startOffset,
-									end: location.endOffset,
-									from: request,
-								});
-							} else {
+							template.requires.push({
+								start: location.startOffset,
+								end: location.endOffset,
+								from: request,
+								resolvedFilename: filename,
+							});
+							if (filename !== null) {
 								template.viewResourceNames.add(await projectContext.getExportedViewResourceNames(filename), {
 									startOffset: location.startOffset,
 									endOffset: location.endOffset,
@@ -231,9 +231,10 @@ export declare namespace TemplateFile {
 
 	export type Binding = AttributeBinding | InterpolationBinding;
 
-	export interface UnresolvedRequire {
+	export interface Require {
 		start: number;
 		end: number;
 		from: string;
+		resolvedFilename: string | null;
 	}
 }

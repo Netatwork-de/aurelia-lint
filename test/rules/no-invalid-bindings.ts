@@ -4,10 +4,8 @@ import NoInvalidBindings from "../../src/rules/no-invalid-bindings";
 import { evaluateTestRule } from "../_common/rules";
 import { getDiagnosticPositions } from "../_common/template-file";
 
-const context = new TestProjectContext();
-
 test("evaluate", async t => {
-	const file = await context.createTestFile(`
+	const file = await new TestProjectContext().createTestFile(`
 		<template>
 			<div value.bind="invalid."></div>
 			<div value.bind="invalid & foo | bar"></div>

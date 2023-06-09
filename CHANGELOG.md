@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.10
++ Add `no-duplicate-requires` rule.
+
 ## 1.9
 + Add `ignore` option to `html-custom-element-compat` rule.
 

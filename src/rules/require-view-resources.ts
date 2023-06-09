@@ -110,11 +110,13 @@ export class RequireViewResources implements Rule {
 			});
 		});
 
-		ctx.file.unresolvedRequires.forEach(info => {
-			ctx.emit({
-				message: `Module does not exist.`,
-				position: [info.start, info.end],
-			});
+		ctx.file.requires.forEach(info => {
+			if (info.resolvedFilename === null) {
+				ctx.emit({
+					message: `Module does not exist.`,
+					position: [info.start, info.end],
+				});
+			}
 		});
 	}
 }

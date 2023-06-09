@@ -1,4 +1,4 @@
-import { join } from "path";
+import { join, normalize } from "path";
 import { ProjectContext } from "../../src/project-context";
 import { TemplateFile } from "../../src/template-file";
 import { unindent } from "./unindent";
@@ -16,9 +16,7 @@ export class TestProjectContext extends ProjectContext {
 	}
 
 	public async resolveSourcePath(request: string, _dirname: string): Promise<string | null> {
-		if (request.startsWith("./")) {
-			request = request.slice(2);
-		}
+		request = normalize(request);
 		return this.files.has(request) ? request : null;
 	}
 
