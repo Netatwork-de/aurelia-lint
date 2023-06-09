@@ -144,6 +144,18 @@ rules: {
 ## `html-custom-element-compat`
 Enforce compatibility with the html custom element spec by enforcing [valid custom element names](https://html.spec.whatwg.org/#valid-custom-element-name). This prevents accidentally using semantic elements as custom element names like `<button>` or `<details>`.
 
+```js
+rules: {
+	"html-custom-element-compat": {
+		// An array of elements to ignore:
+		// (Builtin aurelia elements are ignored automatically)
+		ignore: [
+			"something",
+		]
+	}
+}
+```
+
 ## `no-dead-templates`
 Require `<template>` elements to have at least one of the following attributes: `"id", "if", "else", "repeat", "replace-part"`
 

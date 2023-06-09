@@ -3,14 +3,7 @@ import { bindingParser, parseAttributeName, parseRepeaterBinding } from "../comm
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
 import { TagNameMap } from "../common/tag-name-map";
-
-const aureliaElements = new Set<string>([
-	"template",
-	"require",
-	"let",
-	"slot",
-	"compose",
-]);
+import { aureliaBuiltinElements } from "../common/aurelia-builtin-elements";
 
 export function mergeConfig({ config, parents }: RuleMergeConfigContext<RequireViewResources.Config>): RequireViewResources.Config {
 	const ignoreElements = [...config.ignoreElements ?? []];
@@ -41,7 +34,7 @@ export class RequireViewResources implements Rule {
 	]);
 
 	public configure(config: RequireViewResources.Config) {
-		this._ignoreElements.setAll(aureliaElements, true);
+		this._ignoreElements.setAll(aureliaBuiltinElements, true);
 		config.ignoreElements?.forEach(n => this._ignoreElements.set(n, true));
 		config.ignoreValueConverters?.forEach(n => this._ignoreValueConverters.add(n));
 		config.ignoreBindingBehaviors?.forEach(n => this._ignoreBindingBehaviors.add(n));

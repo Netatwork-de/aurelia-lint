@@ -16,6 +16,9 @@ export class TestProjectContext extends ProjectContext {
 	}
 
 	public async resolveSourcePath(request: string, _dirname: string): Promise<string | null> {
+		if (request.startsWith("./")) {
+			request = request.slice(2);
+		}
 		return this.files.has(request) ? request : null;
 	}
 
@@ -23,8 +26,16 @@ export class TestProjectContext extends ProjectContext {
 		return this.files.get(filename) ?? new ViewResourceNames();
 	}
 
-	public createTestFile(source: string): Promise<TemplateFile> {
-		return TemplateFile.create(this, "", unindent(source));
+	public createTestFile(source: string, name = "self"): Promise<TemplateFile> {
+		const self = this.files.get(name);
+		if (self) {
+			self.addCustomElement(name);
+		} else {
+			this.files.set(name, createTestViewResourceNames({
+				[name]: "customElement",
+			}));
+		}
+		return TemplateFile.create(this, name, unindent(source));
 	}
 }
 
