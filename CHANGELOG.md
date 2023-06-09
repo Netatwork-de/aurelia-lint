@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9
++ Add `ignore` option to `html-custom-element-compat` rule.
+
 ## 1.8
 + Add `html-custom-element-compat` rule.
 + Fix detection of the root template in `no-dead-templates` rule.
