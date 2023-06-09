@@ -159,6 +159,9 @@ rules: {
 ## `no-dead-templates`
 Require `<template>` elements to have at least one of the following attributes: `"id", "if", "else", "repeat", "replace-part"`
 
+## `no-duplicate-requires`
+Ensure that there are no duplicate `<require from="...">` elements.
+
 ## `no-invalid-bindings`
 Ensure that there are no bindings with syntax that can not be parsed by aurelia.
 
