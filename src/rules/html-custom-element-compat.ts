@@ -1,4 +1,5 @@
 import { aureliaBuiltinElements } from "../common/aurelia-builtin-elements";
+
 import { Config } from "../config";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 
@@ -46,7 +47,7 @@ export class HtmlCustomElementCompat implements Rule {
 		ctx.file.traverseElements(element => {
 			const tagName = element.tagName;
 			if (!this._ignore.has(tagName) && customElements.has(tagName)) {
-				const location = element.sourceCodeLocation!.startTag;
+				const location = element.sourceCodeLocation!.startTag!;
 				if (!potentialCustomElementName.test(tagName)) {
 					ctx.emit({
 						message: `${JSON.stringify(tagName)} is not a valid html custom element name.`,

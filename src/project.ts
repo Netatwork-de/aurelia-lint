@@ -1,4 +1,5 @@
-import { readFile } from "fs/promises";
+import { readFile } from "node:fs/promises";
+
 import { formatObject } from "./common/formatting";
 import { createFileMatcher, DisposeWatcher, FileMatcherFn, findFiles, watchFiles } from "./common/files";
 import { Config } from "./config";

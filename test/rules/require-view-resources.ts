@@ -1,4 +1,5 @@
 import test from "ava";
+
 import { TestProjectContext } from "../_common/context";
 import RequireViewResources from "../../src/rules/require-view-resources";
 import { evaluateTestRule } from "../_common/rules";

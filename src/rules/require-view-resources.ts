@@ -1,4 +1,6 @@
+import { defaultTreeAdapter } from "parse5";
 import { ValueConverter, BindingBehavior, Expression } from "aurelia-binding";
+
 import { bindingParser, parseAttributeName, parseRepeaterBinding } from "../common/binding";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
@@ -82,7 +84,7 @@ export class RequireViewResources implements Rule {
 		});
 
 		ctx.file.traverseElements(elem => {
-			elem.attrs.forEach(attr => {
+			defaultTreeAdapter.getAttrList(elem).forEach(attr => {
 				const { name } = parseAttributeName(attr.name);
 				useRequireInfo(names.customAttributes.get(name));
 			});

@@ -1,7 +1,9 @@
-import { CommentNode, DocumentFragment, Element, Node, parseFragment, TextNode } from "parse5";
+import { basename, dirname as getDirname, normalize } from "node:path";
+
 import { LineMap } from "@mpt/line-map";
-import { getTemplateContent, isCommentNode, isElementNode, isTextNode } from "parse5/lib/tree-adapters/default";
-import { basename, dirname as getDirname, normalize } from "path";
+import { parseFragment } from "parse5";
+import { CommentNode, DocumentFragment, Element, Node, Template, TextNode, defaultTreeAdapter } from "parse5/dist/tree-adapters/default";
+
 import { getAttr, getAttrLocation, getAttrValueOffset, isDocumentFragment, isTemplate } from "./common/parse5-tree";
 import { parallel } from "./common/promises";
 import { ProjectContext } from "./project-context";
@@ -33,13 +35,13 @@ export class TemplateFile {
 		(function traverse(node: Node) {
 			if (isDocumentFragment(node)) {
 				node.childNodes.forEach(traverse);
-			} else if (isElementNode(node)) {
+			} else if (defaultTreeAdapter.isElementNode(node)) {
 				if (isTemplate(node)) {
-					traverse(getTemplateContent(node));
-				} else {
-					(node as Element).childNodes.forEach(traverse);
+					traverse(defaultTreeAdapter.getTemplateContent(node as Template));
+				} else if (defaultTreeAdapter.isElementNode(node)) {
+					defaultTreeAdapter.getChildNodes(node).forEach(node => traverse(node));
 				}
-			} else if (isCommentNode(node)) {
+			} else if (defaultTreeAdapter.isCommentNode(node)) {
 				visit(node);
 			}
 		})(this.tree);
@@ -49,13 +51,13 @@ export class TemplateFile {
 		(function traverse(node: Node) {
 			if (isDocumentFragment(node)) {
 				node.childNodes.forEach(traverse);
-			} else if (isElementNode(node) && (visit(node) ?? true)) {
+			} else if (defaultTreeAdapter.isElementNode(node) && (visit(node as Element) ?? true)) {
 				if (isTemplate(node)) {
-					traverse(getTemplateContent(node));
+					traverse(defaultTreeAdapter.getTemplateContent(node as Template));
 				} else {
 					(node as Element).childNodes.forEach(traverse);
 				}
-			} else if (visitText && isTextNode(node)) {
+			} else if (visitText && defaultTreeAdapter.isTextNode(node)) {
 				visitText(node);
 			}
 		})(this.tree);

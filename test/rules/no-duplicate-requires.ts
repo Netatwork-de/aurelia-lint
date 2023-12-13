@@ -1,4 +1,5 @@
 import test from "ava";
+
 import { TestProjectContext } from "../_common/context";
 import NoDuplicateRequires from "../../src/rules/no-duplicate-requires";
 import { evaluateTestRule } from "../_common/rules";

@@ -1,3 +1,5 @@
+import { defaultTreeAdapter } from "parse5";
+
 import { parseAttributeName } from "../common/binding";
 import { getAttrLocation } from "../common/parse5-tree";
 import { TagNameMap } from "../common/tag-name-map";
@@ -47,7 +49,7 @@ export class AttributeUsage implements Rule {
 
 			const missing = new Set(config?.require);
 
-			elem.attrs.forEach(attr => {
+			defaultTreeAdapter.getAttrList(elem).forEach(attr => {
 				const location = getAttrLocation(attr.name, elem);
 				const { name } = parseAttributeName(attr.name);
 
@@ -62,7 +64,7 @@ export class AttributeUsage implements Rule {
 			});
 
 			if (missing.size > 0) {
-				const location = elem.sourceCodeLocation!.startTag;
+				const location = elem.sourceCodeLocation!.startTag!;
 				ctx.emit({
 					message: `Attribute(s) ${Array.from(missing).map(name => JSON.stringify(name)).join(", ")} are missing.`,
 					position: [location.startOffset, location.endOffset],

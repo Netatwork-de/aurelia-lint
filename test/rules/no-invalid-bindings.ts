@@ -1,4 +1,5 @@
 import test from "ava";
+
 import { TestProjectContext } from "../_common/context";
 import NoInvalidBindings from "../../src/rules/no-invalid-bindings";
 import { evaluateTestRule } from "../_common/rules";

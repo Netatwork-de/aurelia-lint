@@ -1,5 +1,5 @@
-import { ChildNode } from "parse5";
-import { getTemplateContent, isElementNode } from "parse5/lib/tree-adapters/default";
+import { ChildNode, Template, defaultTreeAdapter } from "parse5/dist/tree-adapters/default";
+
 import { isNonEmptyTextNode, isTemplate } from "../common/parse5-tree";
 import { TagNameMap } from "../common/tag-name-map";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
@@ -102,15 +102,15 @@ export class ElementNesting implements Rule {
 			if (config) {
 				const handleNode = (child: ChildNode) => {
 					if (isTemplate(child)) {
-						getTemplateContent(child).childNodes.forEach(handleNode);
-					} else if (isElementNode(child)) {
+						defaultTreeAdapter.getTemplateContent(child as Template).childNodes.forEach(handleNode);
+					} else if (defaultTreeAdapter.isElementNode(child)) {
 						if (!this._ignore.get(child)) {
 							const tagName = child.tagName;
 							if (tagName === "slot") {
 								child.childNodes.forEach(handleNode);
 							} else {
 								if (config!.allow ? !config!.allow.has(tagName) : config!.disallow?.has(tagName)) {
-									const location = child.sourceCodeLocation!.startTag;
+									const location = child.sourceCodeLocation!.startTag!;
 									ctx.emit({
 										message: `${JSON.stringify(tagName)} element is not allowed in ${JSON.stringify(elem.tagName)}.`,
 										position: [location.startOffset, location.endOffset],

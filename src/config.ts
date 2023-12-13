@@ -1,6 +1,8 @@
-import { readFile } from "fs/promises";
-import { dirname, resolve } from "path";
+import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+
 import { parse } from "json5";
+
 import { getRuleModule } from "./rule";
 import { mergeSeverity, Severity } from "./severity";
 

@@ -1,4 +1,4 @@
-import { inspect } from "util";
+import { inspect } from "node:util";
 
 export function formatObject(value: unknown) {
 	return inspect(value, false, 99, false);

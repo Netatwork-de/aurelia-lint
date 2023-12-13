@@ -1,4 +1,5 @@
-import { join, normalize } from "path";
+import { join, normalize } from "node:path";
+
 import { ProjectContext } from "../../src/project-context";
 import { TemplateFile } from "../../src/template-file";
 import { unindent } from "./unindent";

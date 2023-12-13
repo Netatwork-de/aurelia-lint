@@ -1,4 +1,5 @@
 import test from "ava";
+
 import { TestProjectContext } from "../_common/context";
 import AttributeUsage from "../../src/rules/attribute-usage";
 import { evaluateTestRule } from "../_common/rules";

@@ -1,6 +1,6 @@
 {
 	"name": "@netatwork/aurelia-lint",
-	"version": "1.10.0",
+	"version": "2.0.0",
 	"bin": {
 		"naw-aurelia-lint": "./dist/cli.js"
 	},
@@ -14,16 +14,16 @@
 	},
 	"devDependencies": {
 		"@types/decamelize": "^3.0.3",
-		"@types/node": "^18.0.0",
+		"@types/node": "^20.10.4",
 		"@types/p-limit": "^2.2.0",
-		"@types/parse5": "^6.0.2",
-		"@types/picomatch": "^2.3.0",
-		"@types/resolve": "^1.20.2",
-		"@types/yargs-parser": "^21.0.0",
-		"ava": "^5.1.0",
-		"concurrently": "^7.2.2",
-		"rimraf": "^3.0.2",
-		"typescript": "^4.7.3"
+		"@types/parse5": "^7.0.0",
+		"@types/picomatch": "^2.3.3",
+		"@types/resolve": "^1.20.6",
+		"@types/yargs-parser": "^21.0.3",
+		"ava": "^6.0.1",
+		"concurrently": "^8.2.2",
+		"rimraf": "^5.0.5",
+		"typescript": "^5.3.3"
 	},
 	"dependencies": {
 		"@mpt/line-map": "^1.0.0",
@@ -32,16 +32,16 @@
 		"aurelia-dependency-injection": "^1.5.2",
 		"camelcase": "^6.3.0",
 		"chokidar": "^3.5.3",
-		"decamelize": "^5.0.1",
-		"editorconfig": "^1.0.3",
-		"json5": "^2.2.1",
+		"decamelize": "^6.0.0",
+		"editorconfig": "^2.0.0",
+		"json5": "^2.2.3",
 		"p-limit": "^3.1.0",
-		"parse5": "^6.0.1",
-		"picomatch": "^2.3.1",
-		"resolve": "^1.22.0",
-		"vscode-languageserver": "^8.0.1",
-		"vscode-languageserver-textdocument": "^1.0.5",
-		"yargs-parser": "^21.0.1"
+		"parse5": "^7.1.2",
+		"picomatch": "^3.0.1",
+		"resolve": "^1.22.8",
+		"vscode-languageserver": "^9.0.1",
+		"vscode-languageserver-textdocument": "^1.0.11",
+		"yargs-parser": "^21.1.1"
 	},
 	"repository": "https://github.com/Netatwork-de/aurelia-lint.git",
 	"author": "Net at Work GmbH",

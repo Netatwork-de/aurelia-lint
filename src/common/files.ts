@@ -1,14 +1,9 @@
-import { basename, join, relative, sep } from "path";
-import { readdir } from "fs/promises";
+import { join, relative, sep } from "node:path";
+import { setTimeout, clearTimeout } from "node:timers";
 
-/*
-	Note that picomatch is used to provide compatibility
-	with chokidar in vscode, so that vscode's native file
-	system watch can be used when needed.
-*/
-import match from "picomatch";
+import { readdir } from "fs/promises";
 import { watch } from "chokidar";
-import { clearTimeout, setTimeout } from "timers";
+import match from "picomatch";
 
 interface FileMatcher {
 	cwd: string;
@@ -83,7 +78,7 @@ export function watchFiles(options: WatchOptions): DisposeWatcher {
 	const updated = new Set<string>();
 	const deleted = new Set<string>();
 
-	let handleChangesTimer: NodeJS.Timer | null = null;
+	let handleChangesTimer: NodeJS.Timeout | null = null;
 	function handleChanges() {
 		if (!ready) {
 			return;

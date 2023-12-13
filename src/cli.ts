@@ -1,13 +1,13 @@
 #!/usr/bin/env node
+import { relative, resolve } from "node:path";
 
 import colors from "ansi-colors";
 import parseArgv from "yargs-parser";
+import { Position } from "@mpt/line-map";
 
 import { Config } from "./config";
 import { Severity } from "./severity";
 import { Project } from "./project";
-import { Position } from "@mpt/line-map";
-import { relative, resolve } from "path";
 import { indentText } from "./common/formatting";
 
 interface Args extends parseArgv.Arguments {

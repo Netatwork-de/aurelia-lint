@@ -1,4 +1,5 @@
 import test from "ava";
+
 import { TestProjectContext } from "../_common/context";
 import NoDeadTemplates from "../../src/rules/no-dead-templates";
 import { evaluateTestRule } from "../_common/rules";

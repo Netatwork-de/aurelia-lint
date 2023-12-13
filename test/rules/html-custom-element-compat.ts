@@ -1,4 +1,5 @@
 import test from "ava";
+
 import { TestProjectContext } from "../_common/context";
 import HtmlCustomElementCompat from "../../src/rules/html-custom-element-compat";
 import { evaluateTestRule } from "../_common/rules";

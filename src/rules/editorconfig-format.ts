@@ -1,5 +1,7 @@
+import { join } from "node:path";
+
 import { parse } from "editorconfig";
-import { join } from "path";
+
 import { Config } from "../config";
 import { Rule, RuleContext, RuleDiagnosticPosition } from "../rule";
 

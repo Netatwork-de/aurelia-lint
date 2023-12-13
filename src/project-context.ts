@@ -1,11 +1,13 @@
-import { promisify } from "util";
+import { cpus } from "node:os";
+import { promisify } from "node:util";
+import { readFile } from "node:fs/promises";
+import { basename, join, normalize } from "node:path";
+
 import resolveCallback from "resolve";
 import createLimit from "p-limit";
-import { basename, join, normalize } from "path";
 import * as ts from "typescript";
-import { readFile } from "fs/promises";
+
 import { ViewResourceNames } from "./view-resource-names";
-import { cpus } from "os";
 
 const resolve = promisify(resolveCallback) as unknown as (path: string, options: resolveCallback.AsyncOpts) => Promise<string>;
 
