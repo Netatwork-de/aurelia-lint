@@ -1,6 +1,6 @@
 import { defaultTreeAdapter } from "parse5";
 
-import { parseAttributeName } from "../common/binding";
+// import { parseAttributeName } from "../common/binding";
 import { Rule, RuleContext } from "../rule";
 
 const controlAttributes = new Set<string>([
@@ -16,8 +16,8 @@ export class NoDeadTemplates implements Rule {
 	public evaluate(ctx: RuleContext) {
 		ctx.file.traverseElements(elem => {
 			if (elem.tagName === "template" && !defaultTreeAdapter.getAttrList(elem).some(attr => {
-				const { name } = parseAttributeName(attr.name);
-				return controlAttributes.has(name);
+				// const { name } = parseAttributeName(attr.name);
+				// return controlAttributes.has(name);
 			})) {
 				const location = elem.sourceCodeLocation!.startTag ?? elem.sourceCodeLocation!;
 				ctx.emit({

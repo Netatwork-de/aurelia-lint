@@ -1,6 +1,5 @@
-import { ChildNode, Template, defaultTreeAdapter } from "parse5/dist/tree-adapters/default";
-
-import { isNonEmptyTextNode, isTemplate } from "../common/parse5-tree";
+import { defaultTreeAdapter } from "parse5";
+import { ChildNode, Template, isNonEmptyTextNode, isTemplate } from "../common/parse5-tree";
 import { TagNameMap } from "../common/tag-name-map";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 

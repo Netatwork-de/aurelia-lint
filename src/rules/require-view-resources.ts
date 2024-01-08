@@ -1,7 +1,5 @@
 import { defaultTreeAdapter } from "parse5";
-import { ValueConverter, BindingBehavior, Expression } from "aurelia-binding";
 
-import { bindingParser, parseAttributeName, parseRepeaterBinding } from "../common/binding";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
 import { ViewResourceNames } from "../view-resource-names";
 import { TagNameMap } from "../common/tag-name-map";
@@ -52,41 +50,41 @@ export class RequireViewResources implements Rule {
 			}
 		}
 
-		ctx.file.traverseBindings(binding => {
-			let expression: Expression | undefined = undefined;
-			try {
-				expression = binding.type === "attributeRepeaterBinding"
-					? parseRepeaterBinding(binding.expression)
-					: bindingParser.parse(binding.expression);
-			} catch {}
-			while (expression instanceof BindingBehavior) {
-				if (names.bindingBehaviors.has(expression.name)) {
-					useRequireInfo(names.bindingBehaviors.get(expression.name));
-				} else if (!this._ignoreBindingBehaviors.has(expression.name)) {
-					ctx.emit({
-						message: `Missing require for binding behavior: ${JSON.stringify(expression.name)}`,
-						position: [binding.start, binding.end],
-					});
-				}
-				expression = expression.expression;
-			}
-			while (expression instanceof ValueConverter) {
-				if (names.valueConverters.has(expression.name)) {
-					useRequireInfo(names.valueConverters.get(expression.name));
-				} else if (!this._ignoreValueConverters.has(expression.name)) {
-					ctx.emit({
-						message: `Missing require for value converter: ${JSON.stringify(expression.name)}`,
-						position: [binding.start, binding.end],
-					});
-				}
-				expression = expression.expression;
-			}
-		});
+		// ctx.file.traverseBindings(binding => {
+		// 	let expression: Expression | undefined = undefined;
+		// 	try {
+		// 		expression = binding.type === "attributeRepeaterBinding"
+		// 			? parseRepeaterBinding(binding.expression)
+		// 			: bindingParser.parse(binding.expression);
+		// 	} catch {}
+		// 	while (expression instanceof BindingBehavior) {
+		// 		if (names.bindingBehaviors.has(expression.name)) {
+		// 			useRequireInfo(names.bindingBehaviors.get(expression.name));
+		// 		} else if (!this._ignoreBindingBehaviors.has(expression.name)) {
+		// 			ctx.emit({
+		// 				message: `Missing require for binding behavior: ${JSON.stringify(expression.name)}`,
+		// 				position: [binding.start, binding.end],
+		// 			});
+		// 		}
+		// 		expression = expression.expression;
+		// 	}
+		// 	while (expression instanceof ValueConverter) {
+		// 		if (names.valueConverters.has(expression.name)) {
+		// 			useRequireInfo(names.valueConverters.get(expression.name));
+		// 		} else if (!this._ignoreValueConverters.has(expression.name)) {
+		// 			ctx.emit({
+		// 				message: `Missing require for value converter: ${JSON.stringify(expression.name)}`,
+		// 				position: [binding.start, binding.end],
+		// 			});
+		// 		}
+		// 		expression = expression.expression;
+		// 	}
+		// });
 
 		ctx.file.traverseElements(elem => {
 			defaultTreeAdapter.getAttrList(elem).forEach(attr => {
-				const { name } = parseAttributeName(attr.name);
-				useRequireInfo(names.customAttributes.get(name));
+				// const { name } = parseAttributeName(attr.name);
+				// useRequireInfo(names.customAttributes.get(name));
 			});
 
 			const tagName = elem.tagName;

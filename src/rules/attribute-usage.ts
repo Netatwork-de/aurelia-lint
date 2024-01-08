@@ -1,6 +1,6 @@
 import { defaultTreeAdapter } from "parse5";
 
-import { parseAttributeName } from "../common/binding";
+// import { parseAttributeName } from "../common/binding";
 import { getAttrLocation } from "../common/parse5-tree";
 import { TagNameMap } from "../common/tag-name-map";
 import { Rule, RuleContext, RuleMergeConfigContext } from "../rule";
@@ -51,16 +51,16 @@ export class AttributeUsage implements Rule {
 
 			defaultTreeAdapter.getAttrList(elem).forEach(attr => {
 				const location = getAttrLocation(attr.name, elem);
-				const { name } = parseAttributeName(attr.name);
+				// const { name } = parseAttributeName(attr.name);
 
-				missing.delete(name);
+				// missing.delete(name);
 
-				if (config?.disallow?.has(name)) {
-					ctx.emit({
-						message: `Attribute ${JSON.stringify(name)} is not allowed for this element.`,
-						position: [location.startOffset, location.endOffset],
-					});
-				}
+				// if (config?.disallow?.has(name)) {
+				// 	ctx.emit({
+				// 		message: `Attribute ${JSON.stringify(name)} is not allowed for this element.`,
+				// 		position: [location.startOffset, location.endOffset],
+				// 	});
+				// }
 			});
 
 			if (missing.size > 0) {

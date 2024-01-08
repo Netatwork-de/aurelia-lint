@@ -1,5 +1,4 @@
-import { Element } from "parse5/dist/tree-adapters/default";
-import { getParentElement } from "./parse5-tree";
+import { Element, getParentElement } from "./parse5-tree";
 
 export class TagNameMap<T> {
 	private readonly _selectorEndings = new Set<string>();

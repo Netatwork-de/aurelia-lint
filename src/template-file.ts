@@ -1,15 +1,14 @@
 import { basename, dirname as getDirname, normalize } from "node:path";
 
 import { LineMap } from "@mpt/line-map";
-import { parseFragment } from "parse5";
-import { CommentNode, DocumentFragment, Element, Node, Template, TextNode, defaultTreeAdapter } from "parse5/dist/tree-adapters/default";
+import { defaultTreeAdapter, parseFragment } from "parse5";
 
-import { getAttr, getAttrLocation, getAttrValueOffset, isDocumentFragment, isTemplate } from "./common/parse5-tree";
+import { CommentNode, DocumentFragment, Element, Node, Template, TextNode, getAttr, getAttrLocation, isDocumentFragment, isTemplate } from "./common/parse5-tree";
 import { parallel } from "./common/promises";
 import { ProjectContext } from "./project-context";
 import { ViewResourceNames } from "./view-resource-names";
 import { Ranges } from "./ranges";
-import { bindingSuffixes, parseAttributeName, parseInterpolation } from "./common/binding";
+// import { bindingSuffixes, parseAttributeName, parseInterpolation } from "./common/binding";
 import { RuleDiagnostic } from "./rule";
 import { formatObject } from "./common/formatting";
 
@@ -63,62 +62,62 @@ export class TemplateFile {
 		})(this.tree);
 	}
 
-	public traverseBindings(visit: (binding: TemplateFile.Binding) => void): void {
-		this.traverseElements(elem => {
-			elem.attrs.forEach(attr => {
-				const { suffix, name } = parseAttributeName(attr.name);
-				const location = getAttrLocation(attr.name, elem);
-				const valueOffset = getAttrValueOffset(attr, location);
-				if (name === "repeat" && suffix === "for") {
-					visit({
-						type: "attributeRepeaterBinding",
-						attrName: attr.name,
-						expression: attr.value,
-						start: valueOffset,
-						end: valueOffset + attr.value.length,
-						elem,
-					});
-				} else if (suffix && bindingSuffixes.has(suffix)) {
-					visit({
-						type: "attributeBinding",
-						attrName: attr.name,
-						expression: attr.value,
-						start: valueOffset,
-						end: valueOffset + attr.value.length,
-						elem,
-					});
-				} else {
-					const bindings = parseInterpolation(attr.value);
-					for (let i = 0; i < bindings.length; i++) {
-						const binding = bindings[i];
-						const bindingValueOffset = valueOffset + binding.offset;
-						visit({
-							type: "attributeInterpolation",
-							attrName: attr.name,
-							expression: binding.value,
-							start: bindingValueOffset,
-							end: bindingValueOffset + binding.value.length,
-							elem,
-						});
-					}
-				}
-			});
-		}, textNode => {
-			const location = textNode.sourceCodeLocation!;
-			const bindings = parseInterpolation(textNode.value);
-			for (let i = 0; i < bindings.length; i++) {
-				const binding = bindings[i];
-				const bindingValueOffset = location.startOffset + binding.offset;
-				visit({
-					type: "interpolation",
-					expression: binding.value,
-					start: bindingValueOffset,
-					end: bindingValueOffset + binding.value.length,
-					textNode,
-				});
-			}
-		});
-	}
+	// public traverseBindings(visit: (binding: TemplateFile.Binding) => void): void {
+	// 	this.traverseElements(elem => {
+	// 		elem.attrs.forEach(attr => {
+	// 			const { suffix, name } = parseAttributeName(attr.name);
+	// 			const location = getAttrLocation(attr.name, elem);
+	// 			const valueOffset = getAttrValueOffset(attr, location);
+	// 			if (name === "repeat" && suffix === "for") {
+	// 				visit({
+	// 					type: "attributeRepeaterBinding",
+	// 					attrName: attr.name,
+	// 					expression: attr.value,
+	// 					start: valueOffset,
+	// 					end: valueOffset + attr.value.length,
+	// 					elem,
+	// 				});
+	// 			} else if (suffix && bindingSuffixes.has(suffix)) {
+	// 				visit({
+	// 					type: "attributeBinding",
+	// 					attrName: attr.name,
+	// 					expression: attr.value,
+	// 					start: valueOffset,
+	// 					end: valueOffset + attr.value.length,
+	// 					elem,
+	// 				});
+	// 			} else {
+	// 				const bindings = parseInterpolation(attr.value);
+	// 				for (let i = 0; i < bindings.length; i++) {
+	// 					const binding = bindings[i];
+	// 					const bindingValueOffset = valueOffset + binding.offset;
+	// 					visit({
+	// 						type: "attributeInterpolation",
+	// 						attrName: attr.name,
+	// 						expression: binding.value,
+	// 						start: bindingValueOffset,
+	// 						end: bindingValueOffset + binding.value.length,
+	// 						elem,
+	// 					});
+	// 				}
+	// 			}
+	// 		});
+	// 	}, textNode => {
+	// 		const location = textNode.sourceCodeLocation!;
+	// 		const bindings = parseInterpolation(textNode.value);
+	// 		for (let i = 0; i < bindings.length; i++) {
+	// 			const binding = bindings[i];
+	// 			const bindingValueOffset = location.startOffset + binding.offset;
+	// 			visit({
+	// 				type: "interpolation",
+	// 				expression: binding.value,
+	// 				start: bindingValueOffset,
+	// 				end: bindingValueOffset + binding.value.length,
+	// 				textNode,
+	// 			});
+	// 		}
+	// 	});
+	// }
 
 	public static async create(projectContext: ProjectContext, filename: string, source: string) {
 		filename = normalize(filename);
