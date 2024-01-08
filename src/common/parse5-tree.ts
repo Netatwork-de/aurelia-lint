@@ -12,6 +12,8 @@ export type TextNode = Tree["textNode"];
 export type Template = Tree["template"];
 export type DocumentType = Tree["documentType"];
 
+export type Attribute = typeof defaultTreeAdapter.getAttrList extends (e: Element) => (infer R)[] ? R : never;
+
 export interface Location {
 	startOffset: number;
 	endOffset: number;
@@ -39,9 +41,9 @@ export function getParentElement(value: Element): Element | null {
 	return parent && defaultTreeAdapter.isElementNode(parent) ? parent : null;
 }
 
-// export function getAttrValueOffset(attr: Attribute, location: Location): number {
-// 	return location.endOffset - attr.value.length - 1;
-// }
+export function getAttrValueOffset(attr: Attribute, location: Location): number {
+	return location.endOffset - attr.value.length - 1;
+}
 
 export function isNonEmptyTextNode(node: Node): node is TextNode {
 	return defaultTreeAdapter.isTextNode(node) && /\S/.test(node.value);
